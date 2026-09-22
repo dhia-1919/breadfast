@@ -1,0 +1,1647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boolanga Rider Operations — demo for Breadfast</title>
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --surface-2:#EAEEEA; --line:#D4DBD5; --line-2:#E4E9E4;
+  --ink:#17201D; --ink-2:#4E5B57; --ink-3:#7C8884;
+  --accent:#0B6E4F; --accent-ink:#FFFFFF; --accent-soft:#DCEFE6; --accent-line:#8CC9B0;
+  --bad:#B42318; --bad-soft:#FBE9E7; --warn:#8A5B00; --warn-soft:#FFF1CF; --info:#1E4E8C; --info-soft:#E1EBF8;
+  --sheet:#FFF8E5; --wa:#DCF8C6;
+  --radius:10px; --radius-s:6px;
+  --font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,"Noto Sans Arabic",sans-serif;
+  --font-ar:"Noto Naskh Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;
+  --shadow:0 24px 48px -28px rgba(20,30,26,.35);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1412; --surface:#171D1B; --surface-2:#1F2624; --line:#2B3431; --line-2:#242C29;
+    --ink:#E7ECEA; --ink-2:#A9B4B0; --ink-3:#7A8682;
+    --accent:#4CC79A; --accent-ink:#08201A; --accent-soft:#12312A; --accent-line:#2B6B55;
+    --bad:#F58B7E; --bad-soft:#3A1B19; --warn:#F0C25A; --warn-soft:#3A2E12; --info:#7FB0F0; --info-soft:#17283D;
+    --sheet:#2A2518; --wa:#1F3A2A;
+    --shadow:0 24px 48px -28px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1412; --surface:#171D1B; --surface-2:#1F2624; --line:#2B3431; --line-2:#242C29;
+  --ink:#E7ECEA; --ink-2:#A9B4B0; --ink-3:#7A8682;
+  --accent:#4CC79A; --accent-ink:#08201A; --accent-soft:#12312A; --accent-line:#2B6B55;
+  --bad:#F58B7E; --bad-soft:#3A1B19; --warn:#F0C25A; --warn-soft:#3A2E12; --info:#7FB0F0; --info-soft:#17283D;
+  --sheet:#2A2518; --wa:#1F3A2A;
+  --shadow:0 24px 48px -28px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{animation:none!important;transition:none!important}}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.015em;line-height:1.2}
+p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+img,svg{max-width:100%}
+table{border-collapse:collapse;width:100%}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.tiny{font-size:12px;color:var(--ink-3)}
+.wrap{overflow-x:auto}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:calc(10px + env(safe-area-inset-top,0px)) 20px 10px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:-.01em;font-size:16px;display:flex;align-items:center;gap:10px}
+.brand .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center}
+.brand .mark svg{width:16px;height:16px}
+.brand span.sub{font-weight:500;color:var(--ink-2)}
+.brand span.sub::before{content:"/";margin-right:10px;color:var(--ink-3)}
+.chip{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.chip.warnc{border-color:transparent;background:var(--warn-soft);color:var(--warn)}
+.chip.okc{border-color:transparent;background:var(--accent-soft);color:var(--accent)}
+.chip.badc{border-color:transparent;background:var(--bad-soft);color:var(--bad)}
+.chip.infoc{border-color:transparent;background:var(--info-soft);color:var(--info)}
+.spacer{flex:1}
+.seg{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);overflow:hidden;font-size:13px}
+.seg .seg-label{padding:0 10px;color:var(--ink-3);border-right:1px solid var(--line);align-self:stretch;display:flex;align-items:center}
+.seg button{border:0;background:transparent;padding:6px 12px;cursor:pointer;color:var(--ink-2);font-weight:600}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);width:34px;height:34px;border-radius:var(--radius-s);display:grid;place-items:center;cursor:pointer}
+.iconbtn svg{width:16px;height:16px}
+
+/* Shell */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr)}
+.rail{position:sticky;top:calc(55px + env(safe-area-inset-top,0px));height:calc(100vh - 55px - env(safe-area-inset-top,0px));overflow:auto;padding:26px 14px 26px 20px;border-right:1px solid var(--line)}
+.rail .rail-title{font-size:12px;color:var(--ink-3);margin:0 0 10px 10px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:center;padding:7px 10px;border-radius:var(--radius-s);text-decoration:none;color:var(--ink-2);font-size:14px;position:relative}
+.rail a .n{font-size:12px;font-weight:700;color:var(--ink-3);text-align:right;padding-right:2px}
+.rail a.on{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.rail a.on .n{color:var(--accent)}
+.rail a:hover{color:var(--ink)}
+.rail .gap{height:14px}
+.rail .line{height:1px;background:var(--line);margin:12px 10px}
+main{min-width:0}
+
+/* Stages */
+.stage{padding:64px 44px 56px;max-width:1160px;border-bottom:1px solid var(--line)}
+.stage-head{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:start;margin-bottom:28px}
+.stage-num{font-size:40px;font-weight:700;letter-spacing:-.04em;color:var(--accent);line-height:.95;padding-top:2px}
+.stage h2{font-size:30px}
+.stage .lede{margin-top:8px;color:var(--ink-2);max-width:62ch;font-size:16px}
+.stage .why{margin-top:22px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;max-width:78ch;color:var(--ink-2);font-size:14px}
+.stage .why b{color:var(--ink);font-weight:650}
+.stage .why .tag{font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:2px 9px;white-space:nowrap;margin-top:1px}
+.roadmap{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--info);background:var(--info-soft);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
+.roadmap svg{width:11px;height:11px}
+body.hide-roadmap .roadmap{display:none}
+
+/* Product frame */
+.app{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.app-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.app-bar .crumb{font-weight:600;color:var(--ink)}
+.app-bar .crumb span{color:var(--ink-3);font-weight:500}
+.app-bar .dots{display:flex;gap:5px;margin-right:6px}
+.app-bar .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.app-body{padding:20px}
+.app-body.tight{padding:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2-1{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.grid-1-2{display:grid;grid-template-columns:1fr 1.6fr;gap:20px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hr{height:1px;background:var(--line-2);margin:16px 0}
+
+/* Controls */
+.btn{font-size:14px;font-weight:600;padding:8px 14px;border-radius:var(--radius-s);border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;line-height:1.3}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.danger{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.btn.ghost{background:transparent}
+.btn.sm{font-size:13px;padding:5px 10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select,input[type=text],input[type=number],textarea{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);color:var(--ink)}
+label.field{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+label.field span.v{color:var(--ink);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.choice{display:flex;gap:8px;flex-wrap:wrap}
+.choice button{border:1px solid var(--line);background:var(--surface);padding:8px 12px;border-radius:var(--radius-s);cursor:pointer;font-size:14px}
+.choice button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface-2)}
+.toggle button{border:0;background:transparent;padding:6px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;color:var(--ink-2)}
+.toggle button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* KPI grid */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.kpi{background:var(--surface);padding:14px 16px 12px;min-width:0}
+.kpi .l{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.kpi .s{font-size:12px;color:var(--ink-3);margin-top:6px}
+.kpi .v.bad{color:var(--bad)} .kpi .v.warn{color:var(--warn)} .kpi .v.ok{color:var(--accent)}
+
+#kpis{grid-template-columns:repeat(4,1fr)}
+#miniKpis{grid-template-columns:repeat(5,1fr)}
+@media (max-width:960px){#kpis,#miniKpis{grid-template-columns:repeat(2,1fr)} #prospectChip{display:none}}
+
+/* Tables */
+.tbl th,.tbl td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line-2);font-size:13.5px;vertical-align:middle}
+.tbl th{font-weight:600;color:var(--ink-2);font-size:12.5px;background:var(--surface-2);position:sticky;top:0}
+.tbl th.sort{cursor:pointer;user-select:none;white-space:nowrap}
+.tbl th.sort::after{content:"↕";margin-left:5px;color:var(--ink-3);font-size:11px}
+.tbl th.sort.asc::after{content:"↑";color:var(--accent)} .tbl th.sort.desc::after{content:"↓";color:var(--accent)}
+.tbl td.r,.tbl th.r{text-align:right}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 60%,transparent)}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.bar.bad i{background:var(--bad)} .bar.warn i{background:var(--warn)}
+.rank{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface-2);font-size:12px;font-weight:700;color:var(--ink-2)}
+.rank.top{background:var(--accent-soft);color:var(--accent)}
+
+/* Status pills */
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.info{background:var(--info-soft);color:var(--info)} .pill.neutral{background:var(--surface-2);color:var(--ink-2)}
+
+/* Stage 0 before/after */
+.beforeafter{position:relative}
+.ba-toggle{display:flex;justify-content:center;margin-bottom:18px}
+.ba-panes{position:relative;min-height:480px}
+.ba-pane{position:absolute;inset:0;opacity:0;transition:opacity .35s ease;pointer-events:none}
+.ba-pane.on{opacity:1;pointer-events:auto;position:relative}
+.mess{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:var(--radius-s);padding:0;overflow:hidden;font-size:12.5px;transform:rotate(-.6deg)}
+.sheet .sheet-bar{display:flex;gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--sheet) 70%,var(--surface));color:var(--ink-2)}
+.sheet table td,.sheet table th{border:1px solid var(--line);padding:5px 8px;text-align:left;font-size:12px}
+.sheet table th{background:color-mix(in srgb,var(--sheet) 60%,var(--surface-2))}
+.sheet td.x{color:var(--bad);font-weight:600;background:var(--bad-soft)}
+.sheet td.q{color:var(--warn);font-style:italic}
+.wa-thread{display:flex;flex-direction:column;gap:8px}
+.wa-msg{max-width:88%;padding:8px 11px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:13px;position:relative}
+.wa-msg.me{align-self:flex-end;background:var(--wa);border-color:transparent}
+.wa-msg .t{display:block;font-size:10.5px;color:var(--ink-3);margin-top:3px;text-align:right}
+.sticky-note{background:var(--warn-soft);color:var(--warn);padding:10px 12px;font-size:13px;border-radius:2px;transform:rotate(1.4deg);box-shadow:var(--shadow);max-width:230px;font-weight:600}
+.ba-after .app{box-shadow:none}
+.feed{display:flex;flex-direction:column}
+.feed .item{display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.feed .item:last-child{border-bottom:0}
+.feed .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)} .feed .dot.bad{background:var(--bad)} .feed .dot.info{background:var(--info)}
+.feed .item .d{font-size:13.5px} .feed .item .d span{display:block;color:var(--ink-3);font-size:12px}
+
+/* Proof band */
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.proof > div{background:var(--surface);padding:26px 28px}
+.proof h3{font-size:19px;margin-bottom:10px}
+.proof ul{margin:12px 0 0;padding-left:18px;color:var(--ink-2)}
+.proof li{margin:5px 0}
+.markets{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.markets span{font-size:12.5px;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.lock{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;margin-top:10px;font-size:14px;color:var(--ink-2)}
+.lock svg{width:18px;height:18px;color:var(--accent);margin-top:2px}
+.lock b{color:var(--ink)}
+
+/* Calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.cal .day{background:var(--surface);padding:10px;min-height:190px}
+.cal .day.today{background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.cal .dh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.cal .dh b{font-size:13px} .cal .dh span{font-size:12px;color:var(--ink-3)}
+.slot{border:1px solid var(--line);border-radius:var(--radius-s);padding:7px 8px;margin-bottom:6px;font-size:12px;cursor:pointer;background:var(--surface)}
+.slot:hover{border-color:var(--accent-line)}
+.slot.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.slot .sn{font-weight:600;display:flex;justify-content:space-between;gap:4px}
+.slot .cap{margin-top:5px;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.slot .cap i{display:block;height:100%;background:var(--accent)}
+.slot.cancelled{opacity:.55;text-decoration:line-through;background:var(--surface-2)}
+.slot.cancelled .cap i{background:var(--ink-3)}
+.cascade{display:flex;flex-direction:column;gap:8px}
+.cascade .step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:13.5px;opacity:.35;transition:opacity .3s}
+.cascade .step.done{opacity:1}
+.cascade .step .ic{width:20px;height:20px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:11px;color:var(--ink-3)}
+.cascade .step.done .ic{background:var(--accent);color:var(--accent-ink)}
+.email{border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);font-size:13px;overflow:hidden}
+.email .eh{padding:9px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2);display:grid;gap:3px}
+.email .eh div span{color:var(--ink-3);display:inline-block;width:52px}
+.email .eb{padding:12px;line-height:1.55}
+.email .eb table td{padding:3px 8px 3px 0;font-size:13px}
+
+/* Steps flow */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.steps .st{padding:8px 10px;border-radius:var(--radius-s);border:1px solid var(--line);font-size:13px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+.steps .st i{width:20px;height:20px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:11px;font-weight:700;font-style:normal}
+.steps .st.on{border-color:var(--accent);color:var(--ink)} .steps .st.on i{background:var(--accent);color:var(--accent-ink)}
+.steps .st.done{color:var(--ink-2)} .steps .st.done i{background:var(--accent-soft);color:var(--accent)}
+.kit{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.kit .it{border:1px solid var(--line);border-radius:var(--radius-s);padding:10px;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center;font-size:13px}
+.kit .it .ico{width:36px;height:36px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center}
+.kit .it .ico svg{width:20px;height:20px}
+.kit .it b{display:block;font-size:13.5px} .kit .it span{color:var(--ink-3);font-size:12px}
+.kit .it.scanned{border-color:var(--accent);background:var(--accent-soft)}
+.scanline{position:relative;overflow:hidden}
+.scanline::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--accent);top:0;animation:scan 1.4s linear infinite;opacity:.8}
+@keyframes scan{from{top:0}to{top:100%}}
+.sigpad{border:1px dashed var(--line);border-radius:var(--radius-s);height:110px;display:grid;place-items:center;color:var(--ink-3);font-size:13px;position:relative;background:var(--surface-2)}
+.sigpad svg{position:absolute;inset:0;width:100%;height:100%}
+.sigpad path{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-dasharray:600;stroke-dashoffset:600}
+.sigpad.signed path{animation:draw 1s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.inv{display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;font-size:13.5px;align-items:center}
+.inv .h{color:var(--ink-3);font-size:12px}
+.inv .low{color:var(--bad);font-weight:600}
+.flash{animation:flash .8s ease}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+
+/* Decision tree */
+.tree{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.q{border-left:2px solid var(--line);padding-left:14px;margin-bottom:16px}
+.q.active{border-color:var(--accent)}
+.q .qt{font-weight:600;margin-bottom:8px;font-size:14.5px}
+.q.dim{opacity:.45}
+.result{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--surface-2)}
+.result h4{font-size:17px;margin-bottom:8px}
+.result dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+.result dt{color:var(--ink-3)} .result dd{margin:0;font-weight:600}
+.types{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.types div{border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;font-size:13px}
+.types div b{display:block;font-size:13.5px;margin-bottom:3px}
+.types div.hi{border-color:var(--accent);background:var(--accent-soft)}
+
+/* AI eval */
+.photo{background:linear-gradient(160deg,var(--surface-2),var(--bg));border:1px solid var(--line);border-radius:var(--radius);aspect-ratio:4/5;position:relative;overflow:hidden;display:grid;place-items:center}
+.photo svg{width:82%;height:82%}
+.det{position:absolute;border:2px dashed var(--bad);border-radius:6px;opacity:0;transition:opacity .4s}
+.det span{position:absolute;top:-22px;left:-2px;background:var(--bad);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700}
+.det.ok{border-color:var(--accent)} .det.ok span{background:var(--accent);color:var(--accent-ink)}
+.det.show{opacity:1}
+.score{display:flex;align-items:center;gap:16px}
+.ring{width:92px;height:92px;position:relative}
+.ring svg{transform:rotate(-90deg)} .ring circle{fill:none;stroke-width:9}
+.ring .bg{stroke:var(--surface-2)} .ring .fg{stroke:var(--warn);stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:700;letter-spacing:-.03em}
+.findings{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.findings li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-s)}
+.findings li .sev{width:8px;height:8px;border-radius:50%;background:var(--bad)} .findings li .sev.ok{background:var(--accent)} .findings li .sev.warn{background:var(--warn)}
+.progress{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width 1.6s ease}
+
+/* Deductions chain */
+.chain{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:22px}
+.chain .c{background:var(--surface-2);border-radius:var(--radius-s);padding:9px 8px;font-size:12px;position:relative;min-height:66px}
+.chain .c b{display:block;font-size:12.5px;margin-bottom:3px}
+.chain .c span{color:var(--ink-3);font-size:11.5px;line-height:1.3;display:block}
+.chain .c.hi{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.chain .c.hi b{color:var(--accent)}
+.chain .c.hard{background:var(--bad-soft)} .chain .c.hard b{color:var(--bad)}
+.policy{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius-s);padding:14px 16px;background:var(--surface);font-size:14.5px;line-height:1.55}
+.policy b{color:var(--accent)}
+.payline{margin-top:12px;border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden;font-size:13px}
+.payline .ph{background:var(--surface-2);padding:7px 12px;color:var(--ink-2);display:flex;justify-content:space-between}
+.payline .pr{display:grid;grid-template-columns:1fr auto;padding:9px 12px;border-top:1px solid var(--line-2)}
+.payline .pr.total{font-weight:700}
+.ded-metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hbars{display:grid;gap:8px;font-size:13px}
+.hbars .hb{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center}
+.hbars .hb .bar{height:10px}
+.hbars .hb .v{text-align:right;color:var(--ink-2)}
+
+/* Phone */
+.phone-wrap{display:flex;justify-content:center;align-items:flex-start}
+.phone{width:296px;height:600px;border:1px solid var(--line);border-radius:38px;background:var(--surface);padding:12px;position:relative;box-shadow:var(--shadow);flex:none}
+.phone::before{content:"";position:absolute;top:18px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:12px;background:var(--ink);opacity:.9;z-index:2}
+.screen{height:100%;border-radius:28px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;font-size:13.5px}
+.screen[dir=rtl]{font-family:var(--font-ar);font-size:14.5px;line-height:1.7}
+.s-bar{padding:34px 16px 10px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-2)}
+.s-body{flex:1;overflow:auto;padding:0 14px 14px}
+.s-foot{padding:12px 14px calc(14px + 0px);border-top:1px solid var(--line-2);background:var(--surface)}
+.s-foot .btn{width:100%}
+.wa-head{display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line-2)}
+.wa-head .av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+.wa-head b{display:block;font-size:13.5px} .wa-head span{font-size:11.5px;color:var(--ink-3)}
+.bubble{background:var(--surface);border-radius:12px;padding:10px 12px;margin:12px 0;border:1px solid var(--line-2);font-size:13.5px;line-height:1.5}
+.screen[dir=rtl] .bubble{font-size:14.5px}
+.bubble .link{display:block;margin-top:8px;padding:9px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;text-align:center}
+.card{background:var(--surface);border-radius:14px;overflow:hidden;border:1px solid var(--line-2);margin-top:12px}
+.card .ill{height:120px;background:linear-gradient(135deg,var(--warn-soft),var(--accent-soft));display:grid;place-items:center}
+.card .ill svg{width:60px;height:60px}
+.card .cb{padding:12px 14px}
+.card .cb h4{font-size:15px;margin-bottom:5px}
+.card .cb p{color:var(--ink-2);font-size:13px}
+.screen[dir=rtl] .card .cb p{font-size:14px}
+.dots-ind{display:flex;gap:5px;justify-content:center;margin:12px 0 0}
+.dots-ind i{width:6px;height:6px;border-radius:50%;background:var(--line)} .dots-ind i.on{background:var(--accent)}
+.opt{display:block;width:100%;text-align:start;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);margin-top:8px;cursor:pointer;font-size:13.5px}
+.screen[dir=rtl] .opt{font-size:14.5px}
+.opt.right{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.passed{text-align:center;padding:30px 10px 10px}
+.passed .badge{width:84px;height:84px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 14px}
+.passed .badge svg{width:40px;height:40px;color:var(--accent)}
+.passed h4{font-size:19px;margin-bottom:6px}
+.notice{background:var(--surface);border-radius:14px;padding:14px;border:1px solid var(--line-2);margin-top:12px}
+.notice .amt{font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--bad);margin:6px 0}
+.notice .meta{font-size:12.5px;color:var(--ink-2);display:grid;gap:3px;margin-top:8px}
+.phone-side{display:grid;gap:14px;align-content:start}
+.phone-side .step-list{display:grid;gap:8px}
+.phone-side .step-list button{text-align:start;padding:10px 12px;border-radius:var(--radius-s);border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13.5px;display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:center}
+.phone-side .step-list button i{width:20px;height:20px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:11px;font-weight:700;font-style:normal}
+.phone-side .step-list button.on{border-color:var(--accent)} .phone-side .step-list button.on i{background:var(--accent);color:var(--accent-ink)}
+
+/* Training admin bits */
+.funnel{display:grid;gap:6px;font-size:13px}
+.funnel .f{display:grid;grid-template-columns:200px 1fr 52px;gap:10px;align-items:center}
+.funnel .f .bar{height:12px} .funnel .f .v{text-align:right;color:var(--ink-2)}
+.funnel .f.drop .bar i{background:var(--warn)}
+.rules{display:grid;gap:8px}
+.rule{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-s);font-size:13.5px}
+.rule code{background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:12.5px;font-family:inherit;font-weight:600}
+.sw{width:34px;height:20px;border-radius:10px;background:var(--line);position:relative;border:0;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--accent)} .sw.on::after{left:16px}
+
+/* Clearance */
+.clear-list{display:grid;gap:8px}
+.cl{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-s);font-size:13.5px}
+.cl input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.cl .nm b{display:block} .cl .nm span{font-size:12px;color:var(--ink-3)}
+.cl select{font-size:13px;padding:5px 8px}
+.cl .fee{min-width:90px;text-align:right;font-weight:600}
+.cl .fee.zero{color:var(--ink-3);font-weight:500}
+.balance{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--surface-2);display:grid;gap:10px}
+.balance .big{font-size:34px;font-weight:700;letter-spacing:-.03em}
+.balance .big.zero{color:var(--accent)}
+.cert{border:1px solid var(--line);border-radius:var(--radius-s);padding:18px 20px;background:var(--surface);font-size:13.5px;display:none;position:relative}
+.cert.show{display:block}
+.cert h4{font-size:16px;margin-bottom:8px}
+.cert .stamp{position:absolute;right:18px;top:16px;border:2px solid var(--accent);color:var(--accent);border-radius:6px;padding:3px 8px;font-weight:700;font-size:12px;transform:rotate(-6deg)}
+.cert table td{padding:4px 10px 4px 0;font-size:13px}
+.outcomes{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:16px}
+.outcomes div{border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 10px;font-size:12.5px}
+.outcomes div b{display:block;margin-bottom:2px;font-size:13px}
+
+/* Control tower */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
+.filters label.field{min-width:150px}
+.filters .live{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--accent);font-weight:600;margin-left:auto;align-self:center}
+.filters .live i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tower{padding:20px;display:grid;gap:20px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 10px}
+.chart .ch{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:13.5px;font-weight:600}
+.chart .ch span{color:var(--ink-3);font-weight:500;font-size:12px}
+.chart svg{width:100%;height:170px;display:block;overflow:visible}
+.chart .axis{fill:var(--ink-3);font-size:10px}
+.chart .grid{stroke:var(--line-2);stroke-dasharray:2 3}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round}
+.chart .area{fill:var(--accent);opacity:.08}
+.chart .bars rect{fill:var(--accent);opacity:.85}
+.chart .bars rect.bad{fill:var(--bad)}
+.tower-bottom{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
+.export{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.export .xh{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);font-size:13px}
+.export pre{margin:0;padding:12px 14px;font-size:11.5px;line-height:1.55;overflow:auto;color:var(--ink-2);font-family:ui-monospace,Menlo,Consolas,monospace;max-height:180px}
+.sched{display:grid;gap:8px;padding:12px 14px;font-size:13px;border-top:1px solid var(--line)}
+.sched div{display:grid;grid-template-columns:1fr auto;gap:10px}
+.sched span{color:var(--ink-3)}
+.exception{display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.exception:last-child{border-bottom:0}
+.exception .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)} .exception .dot.bad{background:var(--bad)} .exception .dot.info{background:var(--info)}
+.exception .d span{display:block;color:var(--ink-3);font-size:12px}
+.exception.gone{opacity:0;transform:translateX(10px);transition:all .35s}
+
+/* Requests */
+.req-types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.req-types button{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:10px 12px;text-align:left;cursor:pointer;font-size:13.5px}
+.req-types button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.form-mock{display:grid;gap:10px}
+.form-mock .fld{display:grid;gap:4px;font-size:12.5px;color:var(--ink-3)}
+.form-mock .fld div{border:1px solid var(--line);border-radius:var(--radius-s);padding:8px 10px;font-size:13.5px;color:var(--ink);background:var(--surface)}
+.approvals{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:90px}
+.approvals .ap{border:1px solid var(--line);border-radius:var(--radius-s);padding:8px 10px;font-size:12.5px;min-width:130px;background:var(--surface)}
+.approvals .ap b{display:block;font-size:13px}
+.approvals .ap .st{margin-top:6px}
+.approvals .arrow{color:var(--ink-3);font-size:18px}
+.approvals.parallel{display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center}
+.approvals.parallel .par{display:grid;gap:8px}
+.approvals .ap.done{border-color:var(--accent)} .approvals .ap.wait{border-style:dashed}
+.thread{display:grid;gap:8px;font-size:13px}
+.thread .cm{padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+.thread .cm b{font-size:12.5px} .thread .cm span{color:var(--ink-3);font-size:11.5px;margin-left:6px}
+.broadcast{border:1px solid var(--line);border-radius:var(--radius-s);padding:14px;font-size:13.5px}
+.broadcast .to{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.broadcast .to span{padding:2px 8px;border-radius:999px;background:var(--surface-2);font-size:12px}
+
+/* Admin */
+.rbac th,.rbac td{text-align:center}
+.rbac td:first-child,.rbac th:first-child{text-align:left}
+.rbac .y{color:var(--accent);font-weight:700} .rbac .n{color:var(--ink-3)} .rbac .ro{color:var(--info);font-weight:700;font-size:12px}
+.audit{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;display:grid;gap:4px;color:var(--ink-2)}
+.audit div{display:grid;grid-template-columns:150px 120px 1fr;gap:12px;padding:6px 0;border-bottom:1px solid var(--line-2)}
+.audit div:last-child{border-bottom:0}
+.audit .who{color:var(--ink)}
+.sec{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sec div{border:1px solid var(--line);border-radius:var(--radius-s);padding:12px 14px;font-size:13.5px}
+.sec div b{display:block;margin-bottom:4px}
+.sec div span{color:var(--ink-2)}
+
+/* ROI */
+.roi{display:grid;grid-template-columns:1fr 1.1fr;gap:24px}
+.roi .inputs{display:grid;gap:14px}
+.roi .out{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:var(--surface-2);display:grid;gap:16px;align-content:start}
+.roi .out .big{font-size:44px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.roi .out .brk{display:grid;gap:10px;font-size:14px}
+.roi .out .brk div{display:grid;grid-template-columns:1fr auto;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.roi .out .brk div:last-child{border-bottom:0}
+.roi .out .brk div span{color:var(--ink-2)}
+.roi .out .brk div b{font-weight:650}
+.assump{font-size:12.5px;color:var(--ink-3);line-height:1.5;margin-top:4px}
+
+/* Plan */
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.timeline > div{background:var(--surface);padding:18px 20px}
+.timeline b.w{display:block;color:var(--accent);font-size:13px;margin-bottom:6px}
+.timeline h4{font-size:16px;margin-bottom:8px}
+.timeline ul{margin:0;padding-left:16px;color:var(--ink-2);font-size:13.5px}
+.timeline li{margin:4px 0}
+.asks{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
+.asks .box{border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.asks h3{font-size:17px;margin-bottom:10px}
+.asks ul{margin:0;padding-left:18px;color:var(--ink-2)}
+.asks li{margin:6px 0}
+.cta{margin-top:26px;border-radius:var(--radius);background:var(--ink);color:var(--bg);padding:28px 30px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.cta h3{font-size:22px;color:inherit;margin-bottom:6px}
+.cta p{opacity:.8;max-width:60ch}
+.cta .btn{background:var(--bg);color:var(--ink);border-color:transparent;font-size:15px;padding:12px 18px}
+.insert{color:var(--info);background:var(--info-soft);padding:1px 6px;border-radius:4px;font-size:.92em;font-weight:600}
+
+footer{padding:26px 44px 60px;color:var(--ink-3);font-size:12.5px;max-width:1160px}
+
+/* Responsive */
+@media (max-width:1100px){
+  .grid3{grid-template-columns:1fr 1fr}
+  .chain{grid-template-columns:repeat(4,1fr)}
+  .types{grid-template-columns:1fr 1fr}
+  .outcomes{grid-template-columns:repeat(3,1fr)}
+  .req-types{grid-template-columns:1fr 1fr}
+  .timeline{grid-template-columns:1fr 1fr}
+}
+@media (max-width:960px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:sticky;top:calc(55px + env(safe-area-inset-top,0px));height:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 12px;display:flex;gap:4px;overflow-x:auto;background:var(--bg);z-index:20}
+  .rail .rail-title,.rail .gap,.rail .line{display:none}
+  .rail a{grid-template-columns:auto;white-space:nowrap;padding:6px 10px;font-size:13px}
+  .rail a .n{display:none}
+  .stage{padding:44px 20px 40px}
+  .stage-head{grid-template-columns:44px 1fr;gap:12px}
+  .stage-num{font-size:30px}
+  .stage h2{font-size:24px}
+  .grid2,.grid3,.grid-2-1,.grid-1-2,.tree,.charts,.tower-bottom,.ded-metrics,.roi,.asks,.proof,.mess{grid-template-columns:1fr}
+  .cal{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:1fr 1fr}
+  .chain{grid-template-columns:1fr 1fr}
+  .cta{grid-template-columns:1fr}
+  .funnel .f{grid-template-columns:1fr 1fr 48px}
+  .hbars .hb{grid-template-columns:100px 1fr 60px}
+  .sec{grid-template-columns:1fr}
+  .phone{width:280px;height:560px}
+  .top{gap:8px;padding-left:14px;padding-right:14px}
+  .seg .seg-label{display:none}
+  .brand span.sub{display:none}
+  .approvals.parallel{grid-template-columns:1fr}
+  footer{padding:20px 20px 60px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h2l1.5-5h7L17 17h2"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M8.5 12l2-5h5"/></svg></span>Boolanga <span class="sub">Rider Operations</span></div>
+  <span class="chip">Sample data</span>
+  <span class="chip infoc" id="prospectChip">Prepared for Breadfast</span>
+  <div class="spacer"></div>
+  <div class="seg" role="group" aria-label="Language of rider-facing screens"><span class="seg-label">Rider screens</span><button data-lang="en" class="on">EN</button><button data-lang="ar" lang="ar">عربي</button></div>
+  <button class="iconbtn" id="themeBtn" aria-label="Switch light or dark theme" title="Light / dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A5.5 5.5 0 0 1 13.4 3.1C13 3 12.5 3 12 3z"/></svg></button>
+</header>
+
+<div class="shell">
+<nav class="rail" aria-label="Rider lifecycle">
+  <p class="rail-title">Rider lifecycle</p>
+  <a href="#s0"><span class="n">0</span>The problem</a>
+  <a href="#proof"><span class="n">·</span>Proven at scale</a>
+  <a href="#s1"><span class="n">1</span>Appointments</a>
+  <a href="#s2"><span class="n">2</span>Gear assignment</a>
+  <a href="#s3"><span class="n">3</span>Exchanges</a>
+  <a href="#s4"><span class="n">4</span>Compliance</a>
+  <a href="#s5"><span class="n">5</span>Deductions</a>
+  <a href="#s6"><span class="n">6</span>Training</a>
+  <a href="#s7"><span class="n">7</span>Offboarding</a>
+  <a href="#s8"><span class="n">8</span>Control tower</a>
+  <a href="#s9"><span class="n">9</span>Requests</a>
+  <a href="#s10"><span class="n">10</span>Admin &amp; security</a>
+  <div class="line"></div>
+  <a href="#roi"><span class="n">£</span>Value calculator</a>
+  <a href="#plan"><span class="n">→</span>Rollout plan</a>
+</nav>
+
+<main>
+
+<!-- ===================== STAGE 0: THE PROBLEM ===================== -->
+<section class="stage" id="s0">
+  <div class="stage-head">
+    <div class="stage-num">0</div>
+    <div>
+      <h2>Where fleet control actually lives today</h2>
+      <p class="lede">Eight warehouses. Over a thousand riders. Every jacket, bag, helmet and no-show tracked across spreadsheets, WhatsApp groups and paper forms that never agree with each other. Flip the switch to see the same fleet on one system.</p>
+    </div>
+  </div>
+
+  <div class="beforeafter">
+    <div class="ba-toggle"><div class="toggle" role="group"><button class="on" data-ba="before">Today</button><button data-ba="after">With Boolanga</button></div></div>
+    <div class="ba-panes">
+      <div class="ba-pane on" data-pane="before">
+        <div class="mess">
+          <div class="sheet">
+            <div class="sheet-bar"><b>Rider_Gear_Master_FINAL_v7 (2).xlsx</b><span class="spacer"></span><span>Last edited 6 days ago · Ahmed R.</span></div>
+            <table>
+              <thead><tr><th>Rider</th><th>Hub</th><th>Bag</th><th>Jacket</th><th>Helmet</th><th>Returned?</th><th>Deduct</th></tr></thead>
+              <tbody>
+                <tr><td>Ahmed Mohamed</td><td>Maadi</td><td>Yes</td><td>Yes</td><td class="q">ask Karim</td><td>—</td><td>—</td></tr>
+                <tr><td>Ahmed Mohamed</td><td class="x">Nasr City</td><td>Yes</td><td class="x">No??</td><td>Yes</td><td>—</td><td class="x">150??</td></tr>
+                <tr><td>Mahmoud S.</td><td>Heliopolis</td><td>Yes</td><td>Yes</td><td>Yes</td><td class="q">left 3 Sept, bag?</td><td>—</td></tr>
+                <tr><td>Omar Farag</td><td>New Cairo</td><td class="x">2 bags</td><td>Yes</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>Youssef A.</td><td>Zayed</td><td>Yes</td><td>size L→XL</td><td>Yes</td><td>—</td><td class="q">no-show 12/9?</td></tr>
+                <tr><td>Karim Mansour</td><td>Maadi</td><td>Yes</td><td>Yes</td><td>Yes</td><td>—</td><td class="x">paid twice</td></tr>
+                <tr><td colspan="7" class="q">TOTAL BAGS ISSUED: 412 (sheet) vs 388 (warehouse count) vs 431 (finance)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="stack">
+            <div class="wa-thread">
+              <div class="wa-msg">Anyone know if Ahmed returned his bag? <span class="t">08:12</span></div>
+              <div class="wa-msg me">Which Ahmed <span class="t">08:14</span></div>
+              <div class="wa-msg">Maadi Ahmed. Or Nasr. He moved <span class="t">08:14</span></div>
+              <div class="wa-msg me">Check the sheet <span class="t">08:20</span></div>
+              <div class="wa-msg">Sheet says two different things 🙃 <span class="t">08:21</span></div>
+              <div class="wa-msg me">Ok deduct 150 and we'll see if he complains <span class="t">08:31</span></div>
+            </div>
+            <div class="sticky-note">Reminder: 14 riders booked Thursday. Someone call them.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-pane ba-after" data-pane="after">
+        <div class="app">
+          <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Breadfast <span>/ Control tower / All warehouses</span></span><span class="spacer"></span><span class="pill ok">Live</span></div>
+          <div class="app-body">
+            <div class="kpis" id="miniKpis"></div>
+            <div class="grid-2-1" style="margin-top:18px">
+              <div>
+                <p class="small" style="font-weight:600;margin-bottom:6px">Needs a human right now</p>
+                <div class="feed" id="miniFeed"></div>
+              </div>
+              <div>
+                <p class="small" style="font-weight:600;margin-bottom:6px">Ahmed Mohamed <span class="tiny">· R-1042 · Nasr City (moved from Maadi 4 Sept)</span></p>
+                <div class="stack" style="font-size:13.5px">
+                  <div class="row"><span class="pill ok">Bag returned 5 Sept</span><span class="pill ok">Jacket on hand</span><span class="pill warn">Helmet exchange pending</span></div>
+                  <p class="muted small">Deductions: none open. The EGP 150 no-show flagged 12 Sept was auto-waived — gate log shows he was on site at 08:04.</p>
+                  <p class="muted small">Training: 4 of 4 assigned courses passed. Last quiz 94%.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why"><span class="tag">Why it matters</span><p>Every number on the right is derived from one event log. There is no version 7 and no "which Ahmed". <b>That single source of truth is the product.</b> Everything that follows is a stage in the rider's life that writes to it.</p></div>
+</section>
+
+<!-- ===================== PROOF BAND ===================== -->
+<section class="stage" id="proof">
+  <div class="stage-head">
+    <div class="stage-num" style="font-size:22px;padding-top:10px">·</div>
+    <div>
+      <h2>Proven at scale, isolated by design</h2>
+      <p class="lede">This is not a prototype. The same platform runs rider gear operations for Talabat across eight markets. Because our clients compete in the same cities, isolation is a hard architectural commitment, not a policy.</p>
+    </div>
+  </div>
+  <div class="proof">
+    <div>
+      <h3>Live for Talabat across MENA</h3>
+      <p class="muted">Onboarding, gear issuance, exchanges, clearance, deductions and reporting for rider fleets in eight countries, with market-level teams operating independently on one platform.</p>
+      <div class="markets"><span>UAE</span><span>Kuwait</span><span>Bahrain</span><span>Qatar</span><span>Jordan</span><span>Egypt</span><span>Iraq</span><span>Oman</span></div>
+      <ul>
+        <li>In production since <span class="insert">[INSERT: go-live year]</span></li>
+        <li><span class="insert">[INSERT: riders under management]</span> riders and <span class="insert">[INSERT: items tracked]</span> gear items tracked</li>
+        <li>Embedded help centre, taxonomy and reporting maintained by Boolanga as a managed service</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Your data never shares a room with anyone else's</h3>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><p><b>Separate tenant, separate database.</b> Breadfast runs on its own instance. No shared tables, no shared indexes, no shared storage buckets.</p></div>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><p><b>Access is scoped to your organisation and your warehouses.</b> Roles are configured by you. Boolanga staff access is logged and visible to your admins.</p></div>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg><p><b>Zero cross-client reporting.</b> No benchmark, aggregate or anonymised dataset is built across clients. Your metrics are yours.</p></div>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg><p><b>Hosting where you need it.</b> Dedicated cloud deployment and data-residency options; DPA provided on request.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STAGE 1: APPOINTMENTS ===================== -->
+<section class="stage" id="s1">
+  <div class="stage-head">
+    <div class="stage-num">1</div>
+    <div>
+      <h2>Appointments and onboarding</h2>
+      <p class="lede">A new rider books a kit-issuance slot at their warehouse from a one-tap link. The warehouse sees capacity per slot, the POC gets a digest every evening, and cancelling a service for a day is one action, not fourteen.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Appointments <span>/ week of 21 September 2026</span></span>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;margin-left:10px">Warehouse <select id="calWh"></select></label>
+      <span class="spacer"></span>
+      <button class="btn sm" id="digestBtn">Preview tonight's POC digest</button>
+    </div>
+    <div class="app-body tight">
+      <div class="cal" id="cal"></div>
+      <div class="grid2" style="padding:20px">
+        <div>
+          <p class="small" style="font-weight:600;margin-bottom:4px" id="calSelTitle">Select a service slot on the calendar</p>
+          <p class="muted small" id="calSelSub">Capacity, bookings and no-show history for the slot appear here.</p>
+          <div class="row" style="margin-top:12px">
+            <button class="btn danger sm" id="cancelDayBtn" disabled>Cancel this service for the whole day</button>
+            <span class="roadmap" title="On the roadmap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>Shipping Q4 2026</span>
+          </div>
+          <div class="cascade" id="cascade" style="margin-top:14px">
+            <div class="step"><span class="ic">1</span><span>Slots released and hidden from booking</span></div>
+            <div class="step"><span class="ic">2</span><span>Every booked rider notified in their language (WhatsApp, SMS fallback)</span></div>
+            <div class="step"><span class="ic">3</span><span>Warehouse POC emailed with the cancelled list and re-booking links</span></div>
+            <div class="step"><span class="ic">4</span><span>Audit entry written: who cancelled, when, how many affected</span></div>
+          </div>
+        </div>
+        <div id="digestWrap">
+          <div class="email" id="digest" style="display:none"></div>
+          <div id="digestEmpty" class="muted small" style="padding:10px;border:1px dashed var(--line);border-radius:6px">Tonight at 18:00 the POC of each warehouse receives a digest of tomorrow's appointments. Click <b>Preview</b> above to render it. <span class="roadmap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>Shipping Q4 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>No-shows are the most expensive minutes in a warehouse: a counter is staffed, a kit is prepared, a rider is not earning. <b>Reminders the evening before and a POC who knows exactly who is coming</b> are the two cheapest levers on that number, and both run without anyone remembering to do them.</p></div>
+</section>
+
+<!-- ===================== STAGE 2: GEAR ASSIGNMENT ===================== -->
+<section class="stage" id="s2">
+  <div class="stage-head">
+    <div class="stage-num">2</div>
+    <div>
+      <h2>Gear assignment at the counter</h2>
+      <p class="lede">The kit is defined per role, vehicle and warehouse. Each item is scanned to the rider, the rider signs on the tablet, and stock moves the instant the receipt is confirmed. Walk through an issuance and watch the warehouse inventory change.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Issue gear <span>/ <span id="issueWhName">Maadi</span> counter 2</span></span><span class="spacer"></span><span class="tiny">Kit template: Motorbike rider · v3</span></div>
+    <div class="app-body">
+      <div class="steps">
+        <div class="st on" data-s="1"><i>1</i>Identify rider</div>
+        <div class="st" data-s="2"><i>2</i>Scan kit</div>
+        <div class="st" data-s="3"><i>3</i>Rider signs</div>
+        <div class="st" data-s="4"><i>4</i>Confirmed</div>
+      </div>
+      <div class="grid-2-1">
+        <div id="issueStage"></div>
+        <div>
+          <p class="small" style="font-weight:600;margin-bottom:8px">Live stock · <span id="invWhName">Maadi</span></p>
+          <div class="inv" id="inv"></div>
+          <div class="hr"></div>
+          <p class="tiny">Reorder point per item is set per warehouse. Falling below it raises an exception in the control tower and drafts a replenishment request automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>The signature is the point. <b>Every future deduction, exchange or clearance dispute resolves against a timestamped receipt the rider acknowledged</b>, in their language, with the item barcodes on it. No receipt, no argument.</p></div>
+</section>
+
+<!-- ===================== STAGE 3: EXCHANGES ===================== -->
+<section class="stage" id="s3">
+  <div class="stage-head">
+    <div class="stage-num">3</div>
+    <div>
+      <h2>Exchanges and replacements</h2>
+      <p class="lede">Not every replacement is the same. The system routes each request to one of four exchange types, and the type decides who pays, who approves and where the old item goes. Answer the questions the counter staff would answer.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">New exchange <span>/ Youssef Abdallah · R-0871 · insulated bag</span></span></div>
+    <div class="app-body">
+      <div class="tree">
+        <div id="treeQ"></div>
+        <div>
+          <div class="result" id="treeResult"><h4>Answer the first question</h4><p class="muted small">The exchange type, charge, approval requirement and destination of the returned item will resolve here.</p></div>
+        </div>
+      </div>
+      <div class="types" id="typeCards">
+        <div data-t="lifecycle"><b>Lifecycle exchange</b><span class="muted small">Item reached end of life. No charge. Old item to disposal or reuse pool.</span></div>
+        <div data-t="size"><b>Size exchange</b><span class="muted small">Wrong fit inside the fit window. No charge. Old item back to stock.</span></div>
+        <div data-t="damage"><b>Damage or loss</b><span class="muted small">Chargeable at replacement value. Evidence required. Feeds a deduction.</span></div>
+        <div data-t="exception"><b>Exception exchange</b><span class="muted small">Out of policy. Manager approval required. Charge decided case by case.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>When every replacement is just "gave him a new bag", the loss rate is invisible. <b>Typed exchanges make the difference between wear-and-tear and negligence measurable per warehouse</b>, which is the number procurement and HR both want and neither has.</p></div>
+</section>
+
+<!-- ===================== STAGE 4: COMPLIANCE ===================== -->
+<section class="stage" id="s4">
+  <div class="stage-head">
+    <div class="stage-num">4</div>
+    <div>
+      <h2>Compliance and AI evaluation</h2>
+      <p class="lede">A rider submits a photo from their phone at shift start or on request. The evaluation scores gear condition and uniform compliance, flags what it sees, and recommends an action. A supervisor confirms with one tap or overrides.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Compliance check <span>/ Mostafa Ragab · R-0334 · Heliopolis</span></span><span class="spacer"></span><span class="chip">Simulated evaluation</span></div>
+    <div class="app-body">
+      <div class="grid-1-2">
+        <div>
+          <div class="photo" id="photo">
+            <svg viewBox="0 0 200 250" aria-hidden="true">
+              <g fill="none" stroke="var(--ink-3)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+                <circle cx="100" cy="46" r="20"/>
+                <path d="M84 30c4-14 28-14 32 0" />
+                <path d="M62 120c0-30 18-46 38-46s38 16 38 46v52H62z"/>
+                <path d="M70 172v60M130 172v60M62 122l-18 42M138 122l18 42"/>
+                <path d="M126 96c18 4 34 24 34 46v20h-14"/>
+                <rect x="140" y="112" width="42" height="56" rx="6"/>
+                <path d="M92 74v12M108 74v12"/>
+              </g>
+            </svg>
+            <div class="det" style="left:18%;top:9%;width:26%;height:18%"><span>Helmet: chin strap missing</span></div>
+            <div class="det" style="left:68%;top:42%;width:26%;height:26%"><span>Bag: strap frayed</span></div>
+            <div class="det ok" style="left:28%;top:30%;width:44%;height:36%"><span>Uniform: compliant</span></div>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn primary" id="evalBtn">Run evaluation on sample photo</button><button class="btn ghost sm" id="evalReset">Reset</button></div>
+          <div class="progress" style="margin-top:10px"><i id="evalProg"></i></div>
+        </div>
+        <div>
+          <div class="score">
+            <div class="ring"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"/><circle class="fg" id="ringFg" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg><b id="ringVal">–</b></div>
+            <div><p style="font-weight:600">Condition and compliance score</p><p class="muted small" id="scoreSub">Waiting for a photo.</p></div>
+          </div>
+          <ul class="findings" id="findings"></ul>
+          <div class="hr"></div>
+          <p class="small" style="font-weight:600;margin-bottom:6px">Recommended action</p>
+          <div class="row" id="recActions"><span class="muted small">—</span></div>
+          <div class="hr"></div>
+          <p class="small" style="font-weight:600;margin-bottom:8px">Compliance rules for Heliopolis</p>
+          <div class="rules">
+            <div class="rule"><span>Photo check required <code>every 14 days</code> and on any customer complaint</span><button class="sw on" aria-label="toggle"></button></div>
+            <div class="rule"><span>Score below <code>70</code> assigns the refresher course automatically</span><button class="sw on" aria-label="toggle"></button></div>
+            <div class="rule"><span>Score below <code>50</code> blocks shift start until a supervisor clears it</span><button class="sw" aria-label="toggle"></button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>Supervisors cannot inspect a thousand riders a fortnight. <b>Scoring makes inspection continuous and consistent across warehouses</b>, and every score is a dated record that later justifies a deduction, an exchange or a course, without a supervisor's memory being the evidence.</p></div>
+</section>
+
+<!-- ===================== STAGE 5: DEDUCTIONS ===================== -->
+<section class="stage" id="s5">
+  <div class="stage-head">
+    <div class="stage-num">5</div>
+    <div>
+      <h2>Deductions and penalties, governed</h2>
+      <p class="lede">Your riders are employees, so a deduction is a payroll event with legal weight, not an invoice line. Nothing here is automatic except the evidence. Every deduction runs through the same eight steps, and the rider can contest it from their phone before payroll ever sees it.</p>
+    </div>
+  </div>
+  <div class="chain">
+    <div class="c hi"><b>1 · Rule triggers</b><span>No-show, loss, damage, non-compliance, overdue return</span></div>
+    <div class="c hi"><b>2 · Evidence attached</b><span>Receipt, photo score, gate log, appointment record</span></div>
+    <div class="c"><b>3 · Rider notified</b><span>In their language, with the evidence</span></div>
+    <div class="c"><b>4 · Dispute window</b><span>Configurable, default 7 days</span></div>
+    <div class="c"><b>5 · Rider contests</b><span>Comment and photo from the app</span></div>
+    <div class="c hard"><b>6 · Manager decides</b><span>Approve, reduce or waive. Always a human.</span></div>
+    <div class="c"><b>7 · Payroll export</b><span>Approved lines only, per cycle</span></div>
+    <div class="c"><b>8 · Audit trail</b><span>Immutable, exportable, per rider</span></div>
+  </div>
+  <div class="grid2">
+    <div class="app">
+      <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Deduction rules <span>/ Maadi</span></span><span class="spacer"></span><span class="roadmap" title="No-show value in deduction metrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>No-show rule shipping Q4 2026</span></div>
+      <div class="app-body">
+        <div class="grid2">
+          <label class="field">Offence <select id="rOff">
+            <option value="noshow">Appointment no-show</option>
+            <option value="lost">Gear lost</option>
+            <option value="damaged">Gear damaged (negligence)</option>
+            <option value="noncomp">Non-compliance (uniform or gear)</option>
+            <option value="overdue">Overdue return after exit</option>
+          </select></label>
+          <label class="field">Approval level <select id="rApp">
+            <option>Warehouse supervisor</option>
+            <option selected>Warehouse manager</option>
+            <option>Regional manager</option>
+          </select></label>
+        </div>
+        <label class="field" style="margin-top:14px">Amount <span class="v" id="rAmtV">EGP 150</span><input type="range" id="rAmt" min="50" max="3000" step="25" value="150"></label>
+        <label class="field" style="margin-top:10px">Dispute window <span class="v" id="rWinV">7 days</span><input type="range" id="rWin" min="2" max="21" step="1" value="7"></label>
+        <label class="field" style="margin-top:10px">Cap per payroll cycle <span class="v" id="rCapV">20% of net pay</span><input type="range" id="rCap" min="5" max="40" step="5" value="20"></label>
+        <div class="hr"></div>
+        <div class="policy" id="policy"></div>
+        <div class="payline" id="payline"></div>
+      </div>
+    </div>
+    <div class="stack" style="gap:20px">
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Deduction metrics <span>/ last 30 days · all warehouses</span></span></div>
+        <div class="app-body">
+          <div class="ded-metrics">
+            <div>
+              <p class="small" style="font-weight:600;margin-bottom:8px">By reason · EGP</p>
+              <div class="hbars" id="dedByReason"></div>
+            </div>
+            <div>
+              <p class="small" style="font-weight:600;margin-bottom:8px">Outcome of every deduction raised</p>
+              <div class="hbars" id="dedByStatus"></div>
+              <p class="tiny" style="margin-top:10px">A waiver rate that climbs in one warehouse is a signal about that warehouse's supervisors, not its riders. Regional managers see this by default.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-wrap" style="justify-content:flex-start;gap:20px;align-items:center">
+        <div class="phone" style="width:250px;height:470px;padding:10px"><div class="screen" id="disputeScreen" style="border-radius:24px"></div></div>
+        <div class="phone-side small muted" style="max-width:220px">The rider's view. The notice carries the evidence, the deadline and one button to contest. Language follows the toggle at the top of the page.</div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>Unfair or unexplained deductions are how you lose riders and how you end up in a labour dispute. <b>A deduction that arrives with its evidence and a fair way to contest it is one riders accept</b>, and the approval and waiver rates tell management where the policy is being applied badly.</p></div>
+</section>
+
+<!-- ===================== STAGE 6: TRAINING ===================== -->
+<section class="stage" id="s6">
+  <div class="stage-head">
+    <div class="stage-num">6</div>
+    <div>
+      <h2>Training that reaches riders where they already are</h2>
+      <p class="lede">No app to install. A course arrives on WhatsApp, opens in one tap, scrolls like a feed and ends in a quiz that produces per-rider proof of completion. A compliance flag assigns the corrective course before anyone is suspended. Flip the rider language at the top of the page.</p>
+    </div>
+  </div>
+  <div class="grid-1-2">
+    <div class="phone-wrap"><div class="phone"><div class="screen" id="trainScreen"></div></div></div>
+    <div class="stack" style="gap:20px">
+      <div class="phone-side">
+        <div class="step-list" id="trainSteps">
+          <button class="on" data-ts="0"><i>1</i>Course lands on WhatsApp</button>
+          <button data-ts="1"><i>2</i>Rider scrolls the course cards</button>
+          <button data-ts="2"><i>3</i>Quiz</button>
+          <button data-ts="3"><i>4</i>Proof of completion stored</button>
+        </div>
+      </div>
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Auto-enrolment rules</span></div>
+        <div class="app-body">
+          <div class="rules">
+            <div class="rule"><span>New rider · <code>any warehouse</code> → Welcome, Road safety, Great customer handovers</span><button class="sw on"></button></div>
+            <div class="rule"><span>Vehicle is <code>Motorbike</code> → Riding safely in extreme heat (Apr–Oct)</span><button class="sw on"></button></div>
+            <div class="rule"><span>Compliance score <code>&lt; 70</code> → Uniform and gear standards refresher, due in 3 days</span><button class="sw on"></button></div>
+            <div class="rule"><span>Customer complaint flag → Great customer handovers, before next shift</span><button class="sw on"></button></div>
+            <div class="rule"><span>Not finished by due date → reminder at <code>+1d, +3d</code>, supervisor notified at <code>+5d</code></span><button class="sw on"></button></div>
+          </div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Where riders drop off <span>/ Riding safely in extreme heat</span></span><span class="spacer"></span><span class="tiny">127 riders opened it</span></div>
+        <div class="app-body">
+          <div class="funnel">
+            <div class="f"><span>Heat is a real danger</span><div class="bar"><i style="width:100%"></i></div><span class="v">127</span></div>
+            <div class="f"><span>Drink before you're thirsty</span><div class="bar"><i style="width:99%"></i></div><span class="v">126</span></div>
+            <div class="f"><span>Take breaks in the shade</span><div class="bar"><i style="width:99%"></i></div><span class="v">126</span></div>
+            <div class="f"><span>If you feel unwell</span><div class="bar"><i style="width:98%"></i></div><span class="v">124</span></div>
+            <div class="f"><span>Flashcards</span><div class="bar"><i style="width:96%"></i></div><span class="v">122</span></div>
+            <div class="f drop"><span>Quiz</span><div class="bar"><i style="width:87%"></i></div><span class="v">111</span></div>
+            <div class="f"><span>Passed</span><div class="bar"><i style="width:84%"></i></div><span class="v">107</span></div>
+          </div>
+          <p class="tiny" style="margin-top:10px">11 riders stopped before the quiz. The card before it is flagged for shortening. Courses are built inside the platform from a PDF or SOP, narrated by AI in Arabic and five more languages, with a 24/7 assistant that answers policy questions from the same content.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>Training you cannot prove did not happen. <b>Completion, score and timestamp per rider close the loop on compliance</b>: a flagged rider is corrected, the correction is recorded, and the next audit or customer complaint has an answer.</p></div>
+</section>
+
+<!-- ===================== STAGE 7: OFFBOARDING ===================== -->
+<section class="stage" id="s7">
+  <div class="stage-head">
+    <div class="stage-num">7</div>
+    <div>
+      <h2>Offboarding and clearance</h2>
+      <p class="lede">An exit in the HR system books a return appointment automatically. At the counter each item is checked in and graded, the outstanding balance is computed on the spot, and HR and payroll receive a clearance certificate. Grade the items and watch the balance move.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Clearance <span>/ Hany Fathy · R-0512 · Sheikh Zayed · last day 19 Sept 2026</span></span><span class="spacer"></span><span class="pill warn">Return appointment kept</span></div>
+    <div class="app-body">
+      <div class="grid-2-1">
+        <div class="clear-list" id="clearList"></div>
+        <div class="stack" style="gap:14px">
+          <div class="balance">
+            <span class="small muted">Outstanding balance</span>
+            <span class="big num" id="balBig">EGP 0</span>
+            <span class="small muted" id="balSub">All items returned in acceptable condition.</span>
+            <button class="btn primary" id="certBtn">Generate clearance certificate</button>
+          </div>
+          <div class="cert" id="cert"></div>
+        </div>
+      </div>
+      <div class="outcomes">
+        <div><b>Back to stock</b><span class="muted">Good condition, reissued as new</span></div>
+        <div><b>Reusable pool</b><span class="muted">Worn but serviceable, second-hand inventory kept apart</span></div>
+        <div><b>Dispose</b><span class="muted">End of life, counted for shredding and waste cost</span></div>
+        <div><b>Transfer</b><span class="muted">Moved to a warehouse that needs it</span></div>
+        <div><b>Missing</b><span class="muted">Not returned, charged at replacement value</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>The last day is when gear disappears. <b>A return appointment that books itself and a balance HR sees before the final salary run</b> is the difference between recovering a bag and writing it off. The five outcomes also give procurement the reuse and disposal numbers it currently guesses.</p></div>
+</section>
+
+<!-- ===================== STAGE 8: CONTROL TOWER ===================== -->
+<section class="stage" id="s8">
+  <div class="stage-head">
+    <div class="stage-num">8</div>
+    <div>
+      <h2>The control tower</h2>
+      <p class="lede">Every stage above writes to one event log; this is what it looks like read back. Change any filter and every figure, chart and row on the page recomputes from the underlying records. Nothing here is a screenshot.</p>
+    </div>
+  </div>
+  <div class="app">
+    <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Control tower</span><span class="spacer"></span><button class="btn sm" id="exportBtn">Export CSV</button><button class="btn sm" id="schedBtn">Schedule report</button></div>
+    <div class="filters">
+      <label class="field">Date range <select id="fRange"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select></label>
+      <label class="field">Warehouse <select id="fWh"></select></label>
+      <label class="field">Vehicle <select id="fVeh"><option value="all">All vehicles</option></select></label>
+      <label class="field">Shift <select id="fShift"><option value="all">All shifts</option><option value="am">Morning</option><option value="pm">Evening</option></select></label>
+      <span class="live"><i></i>Recomputing from <span id="recCount">0</span> rider records</span>
+    </div>
+    <div class="tower">
+      <div class="kpis" id="kpis"></div>
+      <div class="charts">
+        <div class="chart"><div class="ch">Gear issued per day <span id="chart1Sub"></span></div><svg id="chart1" viewBox="0 0 600 170" preserveAspectRatio="none"></svg></div>
+        <div class="chart"><div class="ch">Appointments kept and missed <span id="chart2Sub"></span></div><svg id="chart2" viewBox="0 0 600 170" preserveAspectRatio="none"></svg></div>
+      </div>
+      <div class="tower-bottom">
+        <div class="wrap">
+          <table class="tbl" id="league">
+            <thead><tr>
+              <th>#</th><th class="sort" data-k="name">Warehouse</th><th class="sort r" data-k="riders">Riders</th><th class="sort r desc" data-k="comp">Compliance</th><th class="sort r" data-k="train">Training</th><th class="sort r" data-k="noshow">No-show</th><th class="sort r" data-k="open">Open deductions</th><th class="sort r" data-k="overdue">Overdue returns</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="small" style="font-weight:600;margin-bottom:4px">Exceptions needing a human</p>
+          <div id="exceptions"></div>
+          <div class="hr"></div>
+          <div class="export" id="exportBox" style="display:none">
+            <div class="xh"><span><b>gear_operations_export.csv</b> · <span id="exportRows">0</span> rows</span><span class="pill ok">Ready</span></div>
+            <pre id="exportPre"></pre>
+            <div class="sched" id="schedBox" style="display:none">
+              <div><b>Weekly fleet summary</b><span>Mon 07:00 · ops-leads@breadfast.com · PDF + CSV</span></div>
+              <div><b>Payroll deductions file</b><span>25th of month · payroll@ · CSV, approved lines only</span></div>
+              <div><b>Overdue returns</b><span>Daily 08:00 · each warehouse POC · in-app + email</span></div>
+            </div>
+          </div>
+          <p class="tiny" id="exportHint">Any view exports to CSV or Excel with the current filters applied. Scheduled reports send the same views on a cadence you set.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>Visibility is not a dashboard; it is <b>the confidence that the dashboard and the warehouse floor agree</b>. Because the same records drive issuance, deductions and reports, finance, HR and operations stop reconciling three versions of the truth every month.</p></div>
+</section>
+
+<!-- ===================== STAGE 9: REQUESTS ===================== -->
+<section class="stage" id="s9">
+  <div class="stage-head">
+    <div class="stage-num">9</div>
+    <div>
+      <h2>Requests, approvals and communication</h2>
+      <p class="lede">Anything that today starts as a WhatsApp message to whoever might know, starts here instead: a typed request, the right fields, the right approvers, a thread that stays attached to the record.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="app">
+      <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">New request</span></div>
+      <div class="app-body">
+        <div class="req-types" id="reqTypes">
+          <button class="on" data-r="stock">Stock replenishment</button>
+          <button data-r="exception">Exception exchange</button>
+          <button data-r="waiver">Deduction waiver</button>
+          <button data-r="bug">Report a problem</button>
+        </div>
+        <div class="form-mock" id="reqForm"></div>
+        <div class="hr"></div>
+        <div class="row" style="justify-content:space-between"><span class="small" style="font-weight:600">Approval chain</span><div class="toggle"><button class="on" data-chain="seq">Sequential</button><button data-chain="par">Parallel</button></div></div>
+        <div class="approvals" id="approvals" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="stack" style="gap:20px">
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Thread <span>/ REQ-2041 · Stock replenishment · Nasr City</span></span></div>
+        <div class="app-body">
+          <div class="thread">
+            <div class="cm"><b>Sara M.</b><span>Nasr City · yesterday 16:40</span><br>Down to 4 insulated bags, 9 onboardings booked this week. Requesting 30.</div>
+            <div class="cm"><b>Karim S.</b><span>Warehouse manager · yesterday 17:05</span><br>Approved 30. Can we take 10 from Zamalek instead of ordering? They are at 41.</div>
+            <div class="cm"><b>Boolanga</b><span>system · yesterday 17:05</span><br>Transfer request TRF-118 drafted: 10 × insulated bag, Zamalek → Nasr City. Awaiting Zamalek confirmation.</div>
+            <div class="cm"><b>Nour A.</b><span>Regional · today 08:12</span><br>Approved. Order the remaining 20 from the Q4 PO.</div>
+          </div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Broadcast <span>/ from Boolanga or head office to warehouses</span></span></div>
+        <div class="app-body">
+          <div class="broadcast">
+            <b>Winter jacket rollout starts 15 October</b>
+            <div class="to"><span>Maadi</span><span>Nasr City</span><span>Heliopolis</span><span>New Cairo</span><span>Sheikh Zayed</span><span>6th of October</span><span>Zamalek</span><span>Alexandria – Smouha</span></div>
+            <p class="muted small">Kit template v4 goes live on the 15th. Book rider exchange slots from the 8th. Reply in this thread with your first-week capacity.</p>
+            <div class="row" style="margin-top:10px"><span class="pill ok">6 of 8 replied</span><span class="pill warn">Alexandria and Zamalek pending</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><span class="tag">Why it matters</span><p>Requests that live in chat are invisible to management and unaccountable to anyone. <b>Typed requests with configurable approval chains give every warehouse the same process</b>, and give the regional manager a queue instead of a phone that never stops.</p></div>
+</section>
+
+<!-- ===================== STAGE 10: ADMIN ===================== -->
+<section class="stage" id="s10">
+  <div class="stage-head">
+    <div class="stage-num">10</div>
+    <div>
+      <h2>Admin, security and control</h2>
+      <p class="lede">Three roles by default, configurable per warehouse. Every action anyone takes is logged and exportable. Your identity provider and HR system stay the source of who exists.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="app">
+      <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Roles and permissions</span></div>
+      <div class="app-body tight wrap">
+        <table class="tbl rbac">
+          <thead><tr><th>Capability</th><th>Warehouse user</th><th>Regional manager</th><th>Admin</th></tr></thead>
+          <tbody>
+            <tr><td>Issue and receive gear</td><td class="y">Own warehouse</td><td class="n">—</td><td class="y">Any</td></tr>
+            <tr><td>Raise a deduction</td><td class="y">Own warehouse</td><td class="n">—</td><td class="y">Any</td></tr>
+            <tr><td>Approve or waive a deduction</td><td class="n">—</td><td class="y">Region</td><td class="y">Any</td></tr>
+            <tr><td>See reports and dashboards</td><td class="y">Own warehouse</td><td class="ro">Read-only, all warehouses</td><td class="y">All</td></tr>
+            <tr><td>Export rider-level data</td><td class="n">—</td><td class="y">Region</td><td class="y">All</td></tr>
+            <tr><td>Change kit templates and rules</td><td class="n">—</td><td class="n">—</td><td class="y">Yes</td></tr>
+            <tr><td>Manage users and roles</td><td class="n">—</td><td class="n">—</td><td class="y">Yes</td></tr>
+            <tr><td>View audit log</td><td class="n">—</td><td class="ro">Read-only</td><td class="y">Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="stack" style="gap:20px">
+      <div class="app">
+        <div class="app-bar"><div class="dots"><i></i><i></i><i></i></div><span class="crumb">Audit log <span>/ live</span></span></div>
+        <div class="app-body">
+          <div class="audit">
+            <div><span>2026-09-21 09:14:02</span><span class="who">sara.m</span><span>gear.issue R-1188 · 6 items · Nasr City · signed</span></div>
+            <div><span>2026-09-21 09:02:47</span><span class="who">karim.s</span><span>deduction.waive D-4471 · reason: gate log confirms attendance</span></div>
+            <div><span>2026-09-21 08:55:10</span><span class="who">system</span><span>training.assign R-0334 · Uniform refresher · trigger: compliance score 62</span></div>
+            <div><span>2026-09-21 08:40:31</span><span class="who">nour.a</span><span>request.approve REQ-2041 · 30 × insulated bag</span></div>
+            <div><span>2026-09-20 18:00:00</span><span class="who">system</span><span>digest.send · 8 warehouses · 47 appointments for 21 Sept</span></div>
+            <div><span>2026-09-20 17:31:19</span><span class="who">boolanga.support</span><span>config.read kit_template v3 · ticket SUP-88 · visible to admins</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="sec">
+        <div><b>Single sign-on</b><span>SAML or OIDC with your identity provider. No local passwords for staff.</span></div>
+        <div><b>HR system sync</b><span>Riders and exits arrive from your HRIS. An exit books the return appointment.</span></div>
+        <div><b>Data residency</b><span>Dedicated cloud deployment in the region you choose. DPA on request.</span></div>
+        <div><b>API access</b><span>Read completions, gear state and deductions into your own warehouse or BI stack.</span></div>
+        <div><b>Notification channels</b><span>WhatsApp Business, SMS fallback, email. You bring the sender; we bring the logic.</span></div>
+        <div><b>Backups and retention</b><span>Daily encrypted backups. Retention periods set per data class.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ROI ===================== -->
+<section class="stage" id="roi">
+  <div class="stage-head">
+    <div class="stage-num" style="font-size:30px;padding-top:6px">£</div>
+    <div>
+      <h2>What control is worth per year</h2>
+      <p class="lede">Move the sliders to your fleet. The assumptions are deliberately conservative and shown in full; change any of them.</p>
+    </div>
+  </div>
+  <div class="roi">
+    <div class="inputs">
+      <label class="field">Riders on the fleet <span class="v" id="vN">1,200</span><input type="range" id="iN" min="200" max="5000" step="50" value="1200"></label>
+      <label class="field">Monthly rider churn <span class="v" id="vC">6%</span><input type="range" id="iC" min="1" max="15" step="0.5" value="6"></label>
+      <label class="field">Average kit cost per rider <span class="v" id="vK">EGP 2,400</span><input type="range" id="iK" min="800" max="6000" step="50" value="2400"></label>
+      <label class="field">Gear lost or unreturned per year, share of fleet <span class="v" id="vG">9%</span><input type="range" id="iG" min="1" max="30" step="0.5" value="9"></label>
+      <label class="field">Appointment no-show rate <span class="v" id="vS">14%</span><input type="range" id="iS" min="2" max="40" step="1" value="14"></label>
+      <label class="field">Admin hours per week spent on tracking, chasing and reconciling <span class="v" id="vH">35</span><input type="range" id="iH" min="5" max="150" step="5" value="35"></label>
+      <label class="field">Fully loaded admin cost per hour <span class="v" id="vR">EGP 95</span><input type="range" id="iR" min="40" max="300" step="5" value="95"></label>
+    </div>
+    <div class="out">
+      <div><span class="small muted">Estimated annual value</span><div class="big num" id="roiTotal">–</div></div>
+      <div class="brk">
+        <div><span>Gear loss recovered</span><b id="roiGear">–</b></div>
+        <div><span>Admin hours returned to operations</span><b id="roiAdmin">–</b></div>
+        <div><span>No-show cost avoided</span><b id="roiNoshow">–</b></div>
+        <div><span>Hours saved per year</span><b id="roiHours">–</b></div>
+      </div>
+      <p class="assump" id="assump"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PLAN ===================== -->
+<section class="stage" id="plan">
+  <div class="stage-head">
+    <div class="stage-num" style="font-size:30px;padding-top:6px">→</div>
+    <div>
+      <h2>Rollout in eight weeks, one warehouse first</h2>
+      <p class="lede">The platform exists; the work is your kit templates, your rules and your data feed. We pilot where the pain is loudest, prove the numbers, then roll out.</p>
+    </div>
+  </div>
+  <div class="timeline">
+    <div><b class="w">Weeks 1–2</b><h4>Configure</h4><ul><li>Warehouses, roles, kit templates per vehicle</li><li>Deduction rules agreed with HR and legal</li><li>Rider feed from HRIS, notification sender set up</li><li>Training team onboarding</li></ul></div>
+    <div><b class="w">Weeks 3–4</b><h4>Pilot warehouse</h4><ul><li>Live issuance, exchanges and appointments</li><li>Existing gear baseline captured by scan</li><li>Daily check-in with the pilot POC</li><li>First deduction cycle run in shadow mode</li></ul></div>
+    <div><b class="w">Weeks 5–6</b><h4>Prove</h4><ul><li>Pilot numbers vs. the spreadsheet baseline</li><li>Rules and templates adjusted</li><li>Payroll export validated end to end</li><li>Go / no-go for rollout</li></ul></div>
+    <div><b class="w">Weeks 7–8</b><h4>Roll out</h4><ul><li>Remaining warehouses in two waves</li><li>Regional dashboards live</li><li>Scheduled reports to finance, HR, ops</li><li>Handover to steady-state support</li></ul></div>
+  </div>
+  <div class="asks">
+    <div class="box"><h3>What we need from Breadfast</h3><ul><li>A rider feed: ID, name, warehouse, vehicle, start and exit dates, from your HR or rider system</li><li>Access to your WhatsApp Business sender or SMS provider, or we provision one</li><li>A named POC per warehouse and one product owner on your side</li><li>Your current gear list, prices and any deduction policy already in use</li></ul></div>
+    <div class="box"><h3>What you have by when</h3><ul><li><b>Week 1</b>: every rider and every item in the pilot warehouse on the system, spreadsheet retired</li><li><b>Month 1</b>: appointments, reminders and digest running; first governed deduction cycle</li><li><b>Month 3</b>: all warehouses live, regional league table, payroll and finance exports scheduled, training compliance visible per rider</li></ul></div>
+  </div>
+  <div class="cta">
+    <div><h3>Next step: book a discovery call</h3><p>A short call with your ops lead to confirm scope. From there we run a two-hour scoping session with one warehouse manager, map your kit, deduction policy and rider feed onto the platform live, and leave you with a configured pilot plan and a fixed-scope proposal.</p></div>
+    <a class="btn" href="https://calendly.com/hamdan-boolanga/discovery" target="_blank" rel="noopener">Book a discovery call</a>
+  </div>
+  <p class="tiny" style="margin-top:16px">Presented by Hamdan Albakr · Boolanga · <a href="mailto:hamdan@boolanga.com">hamdan@boolanga.com</a> · <a href="tel:+36305538222">+36 30 553 8222</a> · <a href="https://calendly.com/hamdan-boolanga/discovery" target="_blank" rel="noopener">calendly.com/hamdan-boolanga/discovery</a></p>
+</section>
+
+<footer>All rider names, warehouses, quantities and values in this demo are illustrative sample data generated for presentation. Talabat is referenced as an existing client; no Talabat data appears anywhere in this material. Deduction handling must be configured to comply with Egyptian labour law and Breadfast's employment contracts; the workflow shown is the platform's default governance, not legal advice.</footer>
+
+</main>
+</div>
+
+<script>
+(function(){
+'use strict';
+// Set to false the day cancel-all, the POC digest and no-show deduction values ship.
+const SHOW_ROADMAP_BADGES = true;
+if(!SHOW_ROADMAP_BADGES) document.body.classList.add('hide-roadmap');
+
+// ---------- utilities
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const egp=n=>'EGP '+fmt(n);
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(20260921);
+const pick=a=>a[Math.floor(R()*a.length)];
+const weighted=pairs=>{const tot=pairs.reduce((s,p)=>s+p[1],0);let x=R()*tot;for(const p of pairs){x-=p[1];if(x<=0)return p[0]}return pairs[pairs.length-1][0]};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TODAY=new Date(2026,8,21);
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const dayLabel=ago=>{const d=new Date(TODAY);d.setDate(d.getDate()-ago);return d.getDate()+' '+MON[d.getMonth()]};
+const dayAhead=n=>{const d=new Date(TODAY);d.setDate(d.getDate()+n);return d};
+
+// ---------- theme
+const root=document.documentElement;
+function applyTheme(t){if(t)root.setAttribute('data-theme',t);else root.removeAttribute('data-theme')}
+try{const s=localStorage.getItem('bl-theme');if(s)applyTheme(s)}catch(e){}
+$('#themeBtn').addEventListener('click',()=>{
+  const cur=root.getAttribute('data-theme');
+  const isDark=cur?cur==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  const next=isDark?'light':'dark';applyTheme(next);try{localStorage.setItem('bl-theme',next)}catch(e){}
+  setTimeout(renderTower,50);
+});
+
+// ---------- rider language
+let LANG='en';
+$$('.seg [data-lang]').forEach(b=>b.addEventListener('click',()=>{LANG=b.dataset.lang;$$('.seg [data-lang]').forEach(x=>x.classList.toggle('on',x===b));renderTrain();renderDispute();renderIssue();}));
+
+// ---------- data model
+const WH=[
+ {id:'maadi',name:'Maadi',ar:'المعادي',poc:'Karim S.',pocMail:'karim.s@breadfast.com',size:210,comp:.93,train:.80,ns:.10},
+ {id:'nasr',name:'Nasr City',ar:'مدينة نصر',poc:'Sara M.',pocMail:'sara.m@breadfast.com',size:190,comp:.88,train:.74,ns:.13},
+ {id:'helio',name:'Heliopolis',ar:'مصر الجديدة',poc:'Omar T.',pocMail:'omar.t@breadfast.com',size:160,comp:.84,train:.69,ns:.16},
+ {id:'newcairo',name:'New Cairo',ar:'القاهرة الجديدة',poc:'Dina H.',pocMail:'dina.h@breadfast.com',size:175,comp:.90,train:.77,ns:.12},
+ {id:'zayed',name:'Sheikh Zayed',ar:'الشيخ زايد',poc:'Mina G.',pocMail:'mina.g@breadfast.com',size:150,comp:.91,train:.82,ns:.09},
+ {id:'october',name:'6th of October',ar:'٦ أكتوبر',poc:'Tarek E.',pocMail:'tarek.e@breadfast.com',size:140,comp:.86,train:.71,ns:.15},
+ {id:'zamalek',name:'Zamalek',ar:'الزمالك',poc:'Nadine F.',pocMail:'nadine.f@breadfast.com',size:95,comp:.95,train:.85,ns:.07},
+ {id:'smouha',name:'Alexandria – Smouha',ar:'الإسكندرية – سموحة',poc:'Hossam R.',pocMail:'hossam.r@breadfast.com',size:120,comp:.82,train:.66,ns:.19},
+];
+const VEH=['Motorbike','Bicycle','Car','Walker'];
+const FN=[['Mahmoud','محمود'],['Ahmed','أحمد'],['Mohamed','محمد'],['Omar','عمر'],['Youssef','يوسف'],['Karim','كريم'],['Mostafa','مصطفى'],['Hassan','حسن'],['Ibrahim','إبراهيم'],['Amr','عمرو'],['Tarek','طارق'],['Khaled','خالد'],['Ali','علي'],['Mina','مينا'],['Samir','سمير'],['Hany','هاني'],['Sherif','شريف'],['Ramy','رامي'],['Islam','إسلام'],['Abdelrahman','عبدالرحمن'],['Mazen','مازن'],['Ziad','زياد']];
+const LN=[['El-Sayed','السيد'],['Abdallah','عبدالله'],['Mansour','منصور'],['Farag','فرج'],['Ragab','رجب'],['Saleh','صالح'],['Gamal','جمال'],['Hamdy','حمدي'],['Fathy','فتحي'],['Ezzat','عزت'],['Shaaban','شعبان'],['Zaki','زكي'],['Nasr','نصر'],['Metwally','متولي'],['Younis','يونس'],['Selim','سليم']];
+const ITEMS=[
+ {id:'bag',name:'Insulated delivery bag',ar:'شنطة توصيل معزولة',price:1200,life:12,sku:'BF-BAG-40L'},
+ {id:'jacket',name:'Branded jacket',ar:'جاكيت بريدفاست',price:650,life:12,sku:'BF-JKT-L'},
+ {id:'tshirt',name:'T-shirt',ar:'تيشيرت',price:180,life:6,sku:'BF-TSH-L'},
+ {id:'helmet',name:'Helmet',ar:'خوذة',price:900,life:24,sku:'BF-HLM-M'},
+ {id:'rain',name:'Rain cover',ar:'غطاء مطر',price:250,life:12,sku:'BF-RNC-1'},
+ {id:'badge',name:'ID badge and lanyard',ar:'كارنيه وحبل',price:60,life:24,sku:'BF-IDB-1'},
+];
+const DED={
+ noshow:{label:'Appointment no-show',amt:150,evid:'appointment record, reminder delivery receipt, gate log'},
+ lost:{label:'Gear lost',amt:1200,evid:'signed issuance receipt, loss report, last compliance photo'},
+ damaged:{label:'Gear damaged (negligence)',amt:480,evid:'signed issuance receipt, counter inspection photo, compliance score history'},
+ noncomp:{label:'Non-compliance',amt:100,evid:'compliance photo and score, supervisor confirmation, refresher course status'},
+ overdue:{label:'Overdue return after exit',amt:200,evid:'exit date from HRIS, return appointment record, reminders sent'},
+};
+
+const RIDERS=[];
+let seq=1;
+WH.forEach(wh=>{
+  for(let i=0;i<wh.size;i++){
+    const fn=pick(FN),ln=pick(LN);
+    const veh=weighted([['Motorbike',62],['Bicycle',18],['Car',12],['Walker',8]]);
+    const joined=Math.floor(R()*420);
+    let status=R()<0.05?'offboarded':(joined<16&&R()<0.85?'onboarding':'active');
+    const r={id:'R-'+String(seq++).padStart(4,'0'),fn:fn[0],ln:ln[0],fnAr:fn[1],lnAr:ln[1],wh:wh.id,veh,shift:R()<0.55?'am':'pm',status,joined,
+      score:clamp(Math.round(82+(wh.comp-0.87)*100+(R()+R()-1)*17),38,100),
+      trainA:3+Math.floor(R()*3),issues:[],exchanges:[],deductions:[],appts:[],overdue:false,lastActive:Math.floor(R()*30)};
+    r.trainD=clamp(Math.round(r.trainA*clamp(wh.train+(R()-0.5)*0.5,0,1)),0,r.trainA);
+    if(joined<90){r.issues.push({d:joined,items:veh==='Walker'?5:6});r.appts.push({d:joined,kept:true,service:'Onboarding kit'});}
+    if(R()<0.15)r.issues.push({d:Math.floor(R()*90),items:1+Math.floor(R()*2)});
+    if(R()<0.28){const d=Math.floor(R()*90);const type=weighted([['lifecycle',45],['size',20],['damage',25],['exception',10]]);r.exchanges.push({d,type,status:(d<8&&R()<0.7)?'pending':'done'});r.appts.push({d,kept:R()>wh.ns,service:'Exchange'});}
+    if(R()<0.8)r.appts.push({d:Math.floor(R()*90),kept:R()>wh.ns,service:pick(['Exchange','Compliance check','Onboarding kit'])});if(R()<0.35)r.appts.push({d:Math.floor(R()*90),kept:R()>wh.ns,service:'Compliance check'});
+    if(R()<0.18+(1-wh.comp)*0.5){const d=Math.floor(R()*90);const type=weighted([['noshow',35],['lost',15],['damaged',25],['noncomp',20],['overdue',5]]);
+      let amt=DED[type].amt;if(type==='lost')amt=pick([650,900,1200]);if(type==='damaged')amt=pick([260,360,480]);
+      let st=d<14?weighted([['approved',35],['pending',40],['waived',10],['disputed',15]]):weighted([['approved',72],['waived',20],['disputed',3],['pending',5]]);
+      r.deductions.push({d,type,amt,status:st,id:'D-'+(4000+Math.floor(R()*900))});}
+    if(status==='offboarded'&&R()<0.35)r.overdue=true;
+    RIDERS.push(r);
+  }
+});
+$('#recCount').textContent=fmt(RIDERS.length);
+
+// inventory per warehouse
+const INV={};
+WH.forEach(wh=>{INV[wh.id]=ITEMS.map(it=>({id:it.id,name:it.name,stock:Math.floor(8+R()*60),reorder:it.id==='badge'?15:12}))});
+INV.nasr[0].stock=4; INV.smouha[3].stock=6; INV.helio[1].stock=9;
+
+// ---------- filters and KPIs
+const F={range:30,wh:'all',veh:'all',shift:'all'};
+function filtered(){return RIDERS.filter(r=>(F.wh==='all'||r.wh===F.wh)&&(F.veh==='all'||r.veh===F.veh)&&(F.shift==='all'||r.shift===F.shift))}
+function kpis(set,D){
+  const active=set.filter(r=>r.status==='active'),onb=set.filter(r=>r.status==='onboarding');
+  let issued=0,pendEx=0,openD=0,openEgp=0,tA=0,tD=0,ap=0,ns=0,overdue=0,compOk=0;
+  set.forEach(r=>{
+    r.issues.forEach(i=>{if(i.d<D)issued+=i.items});
+    r.exchanges.forEach(x=>{if(x.d<D&&x.status==='pending')pendEx++});
+    r.deductions.forEach(x=>{if(x.d<D&&(x.status==='pending'||x.status==='disputed')){openD++;openEgp+=x.amt}});
+    r.appts.forEach(a=>{if(a.d<D){ap++;if(!a.kept)ns++}});
+    if(r.overdue)overdue++;
+    if(r.status!=='offboarded'){tA+=r.trainA;tD+=r.trainD;if(r.score>=75)compOk++;}
+  });
+  const live=active.length+onb.length;
+  return {active:active.length,onb:onb.length,issued,pendEx,openD,openEgp,overdue,comp:pct(compOk,live),train:pct(tD,tA),ns:pct(ns,ap),ap,nsCount:ns};
+}
+
+// ---------- stage 0 mini tower
+(function miniTower(){
+  const k=kpis(RIDERS,30);
+  $('#miniKpis').innerHTML=[
+    ['Active riders',fmt(k.active),k.onb+' in onboarding',''],
+    ['Compliance rate',k.comp+'%','score 75 or above',k.comp>=85?'ok':'warn'],
+    ['Open deductions',egp(k.openEgp),k.openD+' awaiting a decision','warn'],
+    ['Overdue returns',k.overdue,'past exit date','bad'],
+    ['No-show rate',k.ns+'%','last 30 days',k.ns>12?'bad':'ok'],
+  ].map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v ${x[3]}">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+  $('#miniFeed').innerHTML=[
+    ['bad','Insulated bags below reorder point at Nasr City','4 left · 9 onboardings booked this week · replenishment drafted'],
+    ['','Deduction D-4471 awaiting manager decision for 6 days','Maadi · no-show · rider disputed with gate log photo'],
+    ['info','7 riders at Heliopolis have an overdue corrective course','Assigned after compliance score below 70 · reminders sent'],
+  ].map(x=>`<div class="item"><span class="dot ${x[0]}"></span><div class="d">${x[1]}<span>${x[2]}</span></div></div>`).join('');
+})();
+$$('[data-ba]').forEach(b=>b.addEventListener('click',()=>{$$('[data-ba]').forEach(x=>x.classList.toggle('on',x===b));$$('.ba-pane').forEach(p=>p.classList.toggle('on',p.dataset.pane===b.dataset.ba))}));
+
+// ---------- stage 1 calendar
+const SERVICES=[{id:'onb',name:'Onboarding kit',cap:12},{id:'exc',name:'Exchange',cap:10},{id:'clr',name:'Clearance',cap:6}];
+const CAL={}; // wh -> day -> service -> booked
+WH.forEach(wh=>{CAL[wh.id]=[];for(let d=0;d<7;d++){const day={};const dow=dayAhead(d).getDay();SERVICES.forEach(s=>{const base=dow===5?0.3:1;day[s.id]={booked:Math.min(s.cap,Math.floor((s.cap*0.35+R()*s.cap*0.6)*base)),cancelled:false}});CAL[wh.id].push(day)}});
+let calWh='maadi',calSel=null;
+const calWhSel=$('#calWh');WH.forEach(w=>calWhSel.appendChild(new Option(w.name,w.id)));
+calWhSel.addEventListener('change',()=>{calWh=calWhSel.value;calSel=null;renderCal();});
+function renderCal(){
+  const c=$('#cal');c.innerHTML='';
+  for(let d=0;d<7;d++){
+    const date=dayAhead(d);const day=document.createElement('div');day.className='day'+(d===0?' today':'');
+    const tot=SERVICES.reduce((s,sv)=>s+(CAL[calWh][d][sv.id].cancelled?0:CAL[calWh][d][sv.id].booked),0);
+    day.innerHTML=`<div class="dh"><b>${DOW[date.getDay()]} ${date.getDate()} ${MON[date.getMonth()]}</b><span>${tot} booked</span></div>`;
+    SERVICES.forEach(sv=>{const slot=CAL[calWh][d][sv.id];const s=document.createElement('div');s.className='slot'+(slot.cancelled?' cancelled':'')+(calSel&&calSel.d===d&&calSel.s===sv.id?' sel':'');
+      s.innerHTML=`<div class="sn"><span>${sv.name}</span><span class="num">${slot.booked}/${sv.cap}</span></div><div class="cap"><i style="width:${pct(slot.booked,sv.cap)}%"></i></div>`;
+      s.addEventListener('click',()=>{calSel={d,s:sv.id};renderCal();});day.appendChild(s)});
+    c.appendChild(day);
+  }
+  const btn=$('#cancelDayBtn');
+  if(calSel){const sv=SERVICES.find(x=>x.id===calSel.s);const slot=CAL[calWh][calSel.d][calSel.s];const date=dayAhead(calSel.d);const wh=WH.find(w=>w.id===calWh);
+    $('#calSelTitle').textContent=`${sv.name} · ${DOW[date.getDay()]} ${date.getDate()} ${MON[date.getMonth()]} · ${wh.name}`;
+    $('#calSelSub').textContent=slot.cancelled?`Cancelled. ${slot.booked} riders were notified and offered new slots.`:`${slot.booked} of ${sv.cap} slots booked, 08:00–14:00. Historic no-show rate for this service here: ${Math.round(wh.ns*100)}%. Reminders go out at 18:00 the evening before.`;
+    btn.disabled=slot.cancelled||slot.booked===0;
+  }else{$('#calSelTitle').textContent='Select a service slot on the calendar';$('#calSelSub').textContent='Capacity, bookings and no-show history for the slot appear here.';btn.disabled=true;}
+  $$('#cascade .step').forEach(s=>s.classList.remove('done'));
+}
+$('#cancelDayBtn').addEventListener('click',()=>{
+  if(!calSel)return;const slot=CAL[calWh][calSel.d][calSel.s];slot.cancelled=true;renderCal();
+  const steps=$$('#cascade .step');steps.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),250+i*450));
+  const n=slot.booked;steps[1].querySelector('span:last-child').textContent=`${n} booked riders notified in their language (WhatsApp, SMS fallback)`;
+  steps[3].querySelector('span:last-child').textContent=`Audit entry written: sara.m · 21 Sept 09:14 · ${n} riders affected`;
+});
+$('#digestBtn').addEventListener('click',()=>{
+  const wh=WH.find(w=>w.id===calWh);const day=CAL[calWh][1];const date=dayAhead(1);
+  const rows=SERVICES.map(sv=>`<tr><td>${sv.name}</td><td class="num">${day[sv.id].cancelled?'cancelled':day[sv.id].booked+' riders'}</td><td class="muted">08:00–14:00</td></tr>`).join('');
+  const tot=SERVICES.reduce((s,sv)=>s+(day[sv.id].cancelled?0:day[sv.id].booked),0);
+  $('#digest').innerHTML=`<div class="eh"><div><span>From</span> Breadfast Rider Operations &lt;no-reply@breadfast.com&gt;</div><div><span>To</span> ${wh.poc} &lt;${wh.pocMail}&gt;</div><div><span>Subject</span> ${tot} riders booked at ${wh.name} tomorrow, ${DOW[date.getDay()]} ${date.getDate()} ${MON[date.getMonth()]}</div></div>
+  <div class="eb">Hi ${wh.poc.split(' ')[0]},<br><br>${tot} riders have appointments at ${wh.name} tomorrow. All of them received a reminder at 18:00 today; ${Math.round(tot*0.83)} have confirmed.<table style="margin:10px 0">${rows}</table>Kits to prepare: ${day.onb.cancelled?0:day.onb.booked} full kits (motorbike template v3) and ${day.exc.booked} exchange items are already reserved from your stock.<br><br>Anyone who does not check in by 09:15 is flagged as a no-show automatically and offered a re-booking link. You can see live check-ins in the appointments view.</div>`;
+  $('#digest').style.display='block';$('#digestEmpty').style.display='none';
+});
+renderCal();
+
+// ---------- stage 2 issue gear
+let issueStep=1,scanned=0,signed=false;
+const KIT=['bag','jacket','tshirt','tshirt','helmet','badge'];
+const ICON={bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2M4 13h16"/></svg>',jacket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l4 3 4-3 4 3-2 5h-1v9H7v-9H6L4 7z"/><path d="M12 7v14"/></svg>',tshirt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l4 2 4-2 5 4-3 3-1-1v11H7V10l-1 1-3-3z"/></svg>',helmet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 14a8 8 0 0 1 16 0v2H4z"/><path d="M4 16h16v2H4z"/></svg>',badge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="7" width="12" height="14" rx="2"/><path d="M10 7V4h4v3M9 12h6M9 16h4"/></svg>'};
+function renderInv(flashIds){
+  const inv=INV.maadi;$('#inv').innerHTML=`<span class="h">Item</span><span class="h">On hand</span><span class="h">Reorder at</span>`+inv.map(it=>`<span>${it.name}</span><span class="num ${it.stock<=it.reorder?'low':''} ${flashIds&&flashIds.includes(it.id)?'flash':''}" style="text-align:right">${it.stock}</span><span class="muted num" style="text-align:right">${it.reorder}</span>`).join('');
+}
+function renderIssue(){
+  $$('.steps .st').forEach(s=>{const n=+s.dataset.s;s.classList.toggle('on',n===issueStep);s.classList.toggle('done',n<issueStep)});
+  const stg=$('#issueStage');
+  if(issueStep===1){stg.innerHTML=`<label class="field">Rider ID, name or appointment <input type="text" value="R-1188" readonly></label>
+    <div class="rule" style="margin-top:10px"><div><b>Ibrahim Zaki</b> · R-1188 · Motorbike · Onboarding<br><span class="muted small">Appointment today 09:00 · Onboarding kit · checked in 08:52 · language: Arabic</span></div><span class="pill ok">Checked in</span></div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="is1">Confirm rider and open kit</button><span class="tiny">Kit template resolves from role and vehicle: 6 items.</span></div>`;
+    $('#is1').addEventListener('click',()=>{issueStep=2;scanned=0;renderIssue()});}
+  if(issueStep===2){stg.innerHTML=`<div class="kit ${scanned<KIT.length?'scanline':''}">${KIT.map((k,i)=>{const it=ITEMS.find(x=>x.id===k);return `<div class="it ${i<scanned?'scanned':''}"><span class="ico">${ICON[k]}</span><div><b>${it.name}</b><span>${i<scanned?it.sku+'-'+(10480+i):'awaiting scan'}</span></div></div>`}).join('')}</div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="is2">${scanned<KIT.length?'Scan next item':'All items scanned · continue'}</button><span class="tiny">${scanned} of ${KIT.length} scanned. Each barcode is bound to the rider for the item's whole life.</span></div>`;
+    $('#is2').addEventListener('click',()=>{if(scanned<KIT.length){scanned++;renderIssue()}else{issueStep=3;signed=false;renderIssue()}});}
+  if(issueStep===3){const txt=LANG==='ar'?'أقر إني استلمت الأصناف المذكورة بحالة جيدة وأعرف إنها تبقى ملك بريدفاست وهرجّعها لما أطلب منها.':'I confirm I received the items listed in good condition, understand they remain Breadfast property, and will return them when asked.';
+    stg.innerHTML=`<div class="rule" ${LANG==='ar'?'dir="rtl" style="font-family:var(--font-ar);font-size:14.5px"':''}><div>${txt}</div></div>
+    <div class="sigpad ${signed?'signed':''}" id="sig" style="margin-top:12px"><svg viewBox="0 0 300 110" preserveAspectRatio="none"><path d="M20 70 C40 20, 60 20, 70 60 S90 95, 110 55 S140 20, 150 60 S170 90, 195 50 S225 20, 240 60 S265 85, 285 45"/></svg>${signed?'':'Rider signs on the counter tablet'}</div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="is3">${signed?'Confirm issuance':'Rider signs'}</button><span class="tiny">Receipt is stored with barcodes, photo of the kit and the signature.</span></div>`;
+    $('#is3').addEventListener('click',()=>{if(!signed){signed=true;renderIssue()}else{issueStep=4;KIT.forEach(k=>{const it=INV.maadi.find(x=>x.id===k);it.stock--});renderInv(KIT);const r=RIDERS.find(x=>x.wh==='maadi'&&x.status==='onboarding')||RIDERS[0];r.issues.push({d:0,items:6});renderTower();renderIssue()}});}
+  if(issueStep===4){stg.innerHTML=`<div class="rule" style="border-color:var(--accent)"><div><b>Kit issued to Ibrahim Zaki</b> · receipt RC-20260921-0031<br><span class="muted small">6 items · signed 09:07 · receipt sent on WhatsApp in Arabic · stock at Maadi updated</span></div><span class="pill ok">Issued</span></div>
+    <p class="small muted" style="margin-top:12px">The control tower below now shows 6 more items issued today, and the Maadi stock on the right has moved. The rider's onboarding status closes when the welcome courses are passed.</p>
+    <div class="row" style="margin-top:14px"><button class="btn" id="is4">Issue another kit</button></div>`;
+    $('#is4').addEventListener('click',()=>{issueStep=1;renderIssue()});}
+}
+renderInv();renderIssue();
+
+// ---------- stage 3 decision tree
+const TREE={
+  q1:{t:'Why is the bag being replaced?',opts:[['worn','Worn out or reached end of life'],['size','Wrong size'],['damage','Damaged or lost'],['other','Something else']]},
+  worn:{t:'Item age against expected life (bag: 12 months)',opts:[['w_old','Issued 14 months ago'],['w_new','Issued 5 months ago']]},
+  size:{t:'Is the rider inside the 14-day fit window?',opts:[['s_in','Yes, issued 9 days ago'],['s_out','No, issued 3 months ago']]},
+  damage:{t:'How did it happen?',opts:[['d_wear','Normal use, no negligence'],['d_neg','Negligence or loss']]},
+  d_neg:{t:'Is evidence attached?',opts:[['d_ev','Yes: counter photo and rider statement'],['d_noev','No']]},
+};
+const RES={
+  w_old:{type:'lifecycle',title:'Lifecycle exchange',charge:'None',appr:'None, counter staff',dest:'Reusable pool if serviceable, else dispose',next:'Issue replacement and scan the returned bag to the clearance outcome.'},
+  w_new:{type:'exception',title:'Exception exchange',charge:'Decided by manager',appr:'Warehouse manager',dest:'Held for inspection',next:'Early wear at 5 months is a quality signal. The request goes to the manager with the item history attached.'},
+  s_in:{type:'size',title:'Size exchange',charge:'None',appr:'None, counter staff',dest:'Back to stock as new',next:'Swap for the correct size; the fit window and the rider\'s size on file are updated.'},
+  s_out:{type:'exception',title:'Exception exchange',charge:'Decided by manager',appr:'Warehouse manager',dest:'Back to stock if unused',next:'Outside the fit window a size swap needs approval. The manager sees when the item was issued and its condition.'},
+  d_wear:{type:'lifecycle',title:'Lifecycle exchange',charge:'None',appr:'None, counter staff',dest:'Dispose',next:'Damage from normal use is treated as end of life; the item is counted in disposal volumes.'},
+  d_ev:{type:'damage',title:'Damage or loss exchange',charge:'EGP 1,200 replacement value',appr:'Warehouse manager before the deduction is raised',dest:'Dispose or missing',next:'A deduction record opens in stage 5 with the evidence attached and a 7-day dispute window.'},
+  d_noev:{type:null,title:'Cannot raise yet',charge:'—',appr:'—',dest:'—',next:'A chargeable exchange needs evidence. The counter is prompted to photograph the item and record the rider\'s statement first.'},
+};
+let path=['q1'];
+function renderTree(){
+  const c=$('#treeQ');c.innerHTML='';
+  path.forEach((qid,i)=>{const q=TREE[qid];if(!q)return;const sel=path[i+1];const box=document.createElement('div');box.className='q '+(sel?'dim':'active');
+    box.innerHTML=`<div class="qt">${q.t}</div><div class="choice">${q.opts.map(o=>`<button data-o="${o[0]}" class="${sel===o[0]?'on':''}">${o[1]}</button>`).join('')}</div>`;
+    $$('button',box).forEach(b=>b.addEventListener('click',()=>{path=path.slice(0,i+1);path.push(b.dataset.o);renderTree()}));c.appendChild(box)});
+  const last=path[path.length-1];const res=RES[last];
+  $$('#typeCards div').forEach(d=>d.classList.toggle('hi',!!res&&d.dataset.t===res.type));
+  if(res){$('#treeResult').innerHTML=`<h4>${res.title}</h4><dl><dt>Charge to rider</dt><dd>${res.charge}</dd><dt>Approval</dt><dd>${res.appr}</dd><dt>Returned item goes to</dt><dd>${res.dest}</dd></dl><p class="small muted" style="margin-top:12px">${res.next}</p><button class="btn sm" style="margin-top:12px" id="treeReset">Start again</button>`;$('#treeReset').addEventListener('click',()=>{path=['q1'];renderTree()});}
+  else if(last==='other'){$('#treeResult').innerHTML=`<h4>Exception exchange</h4><dl><dt>Charge to rider</dt><dd>Decided by manager</dd><dt>Approval</dt><dd>Warehouse manager</dd><dt>Returned item goes to</dt><dd>Held for inspection</dd></dl><p class="small muted" style="margin-top:12px">Anything outside the three standard reasons routes to a manager with free-text justification. Exception volume per warehouse is itself a report.</p><button class="btn sm" style="margin-top:12px" id="treeReset">Start again</button>`;$$('#typeCards div').forEach(d=>d.classList.toggle('hi',d.dataset.t==='exception'));$('#treeReset').addEventListener('click',()=>{path=['q1'];renderTree()});}
+  else{$('#treeResult').innerHTML=`<h4>${path.length===1?'Answer the first question':'One more question'}</h4><p class="muted small">The exchange type, charge, approval requirement and destination of the returned item will resolve here.</p>`;}
+}
+renderTree();
+
+// ---------- stage 4 AI evaluation
+const FIND=[['bad','Helmet chin strap missing','Safety · blocks motorbike shift when rule 3 is on'],['warn','Insulated bag shoulder strap frayed','Replace within 14 days · lifecycle exchange'],['ok','Uniform complete and branded jacket visible','Compliant'],['ok','ID badge visible','Compliant']];
+$('#evalBtn').addEventListener('click',()=>{
+  const btn=$('#evalBtn');btn.disabled=true;$('#evalProg').style.width='100%';$('#scoreSub').textContent='Evaluating photo…';$('#findings').innerHTML='';
+  setTimeout(()=>{$$('.det').forEach((d,i)=>setTimeout(()=>d.classList.add('show'),i*300));
+    const v=62;$('#ringFg').style.strokeDashoffset=String(263.9*(1-v/100));$('#ringVal').textContent=v;$('#scoreSub').textContent='Below the 70 threshold. Refresher course assigned; supervisor asked to confirm the helmet finding.';
+    $('#findings').innerHTML=FIND.map(f=>`<li><span class="sev ${f[0]}"></span><span>${f[1]}<br><span class="tiny">${f[2]}</span></span></li>`).join('');
+    $('#recActions').innerHTML=`<span class="pill bad">Supervisor to confirm helmet</span><span class="pill warn">Book bag exchange</span><span class="pill info">Refresher course assigned</span>`;
+  },1600);
+});
+$('#evalReset').addEventListener('click',()=>{$('#evalBtn').disabled=false;$('#evalProg').style.width='0';$$('.det').forEach(d=>d.classList.remove('show'));$('#ringFg').style.strokeDashoffset='263.9';$('#ringVal').textContent='–';$('#scoreSub').textContent='Waiting for a photo.';$('#findings').innerHTML='';$('#recActions').innerHTML='<span class="muted small">—</span>'});
+$$('.sw').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+
+// ---------- stage 5 deductions
+const rOff=$('#rOff'),rAmt=$('#rAmt'),rWin=$('#rWin'),rCap=$('#rCap'),rApp=$('#rApp');
+rOff.addEventListener('change',()=>{rAmt.value=DED[rOff.value].amt;renderRule()});
+[rAmt,rWin,rCap,rApp].forEach(x=>x.addEventListener('input',renderRule));
+function renderRule(){
+  const d=DED[rOff.value],amt=+rAmt.value,win=+rWin.value,cap=+rCap.value,app=rApp.value;
+  $('#rAmtV').textContent=egp(amt);$('#rWinV').textContent=win+' days';$('#rCapV').textContent=cap+'% of net pay';
+  $('#policy').innerHTML=`At <b>Maadi</b>, <b>${d.label.toLowerCase()}</b> is deducted at <b>${egp(amt)}</b>. The rider is notified immediately with the evidence (${d.evid}) and has <b>${win} days</b> to dispute. Nothing reaches payroll without approval by the <b>${app.toLowerCase()}</b>, and total deductions are capped at <b>${cap}%</b> of net pay in any cycle; the remainder rolls to the next.`;
+  const ded=amt,cap2=Math.round(9800*cap/100),applied=Math.min(ded,cap2);
+  $('#payline').innerHTML=`<div class="ph"><span>Payroll export · October 2026 cycle · Youssef Abdallah · R-0871</span><span>approved lines only</span></div>
+  <div class="pr"><span>${d.label} · 18 Sept 2026 · D-4471 · approved by Karim S. 25 Sept</span><b class="num">${egp(ded)}</b></div>
+  ${applied<ded?`<div class="pr"><span class="muted">Cap ${cap}% of net pay (EGP 9,800): ${egp(ded-applied)} rolls to November</span><b class="num muted">−${egp(ded-applied)}</b></div>`:''}
+  <div class="pr total"><span>Deduction this cycle</span><b class="num">${egp(applied)}</b></div>`;
+}
+renderRule();
+(function dedMetrics(){
+  const by={},st={};RIDERS.forEach(r=>r.deductions.forEach(d=>{if(d.d<30){by[d.type]=(by[d.type]||0)+d.amt;st[d.status]=(st[d.status]||0)+1}}));
+  const mx=Math.max(...Object.values(by));
+  $('#dedByReason').innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="hb"><span>${DED[k].label}</span><div class="bar ${k==='noshow'?'':''}"><i style="width:${pct(v,mx)}%"></i></div><span class="v num">${fmt(v)}</span></div>`).join('');
+  const tot=Object.values(st).reduce((a,b)=>a+b,0);const order=['approved','pending','disputed','waived'];const cls={approved:'',pending:'warn',disputed:'warn',waived:'bad'};
+  $('#dedByStatus').innerHTML=order.filter(k=>st[k]).map(k=>`<div class="hb"><span style="text-transform:capitalize">${k}</span><div class="bar ${cls[k]}"><i style="width:${pct(st[k],tot)}%"></i></div><span class="v num">${st[k]} · ${pct(st[k],tot)}%</span></div>`).join('');
+})();
+const DIS={en:{title:'Deduction notice',sub:'No-show · appointment 18 Sept 2026, 09:00 · Maadi',amt:'EGP 150',evid:'Evidence: appointment record, reminder delivered 17 Sept 18:02, no gate check-in',deadline:'You can dispute this until 25 Sept 2026',btn:'Dispute this deduction',ph:'Tell us what happened',sample:'I was at the warehouse at 08:50 and the counter was closed. Attaching a photo of the gate log.',attach:'Photo attached · gate_log.jpg',send:'Send dispute',sent:'Dispute sent',sentSub:'A manager will review it within 2 working days. Nothing is deducted until they decide.',back:'Back',app:'Breadfast Rider'},
+ ar:{title:'إشعار خصم',sub:'عدم حضور · ميعاد ١٨ سبتمبر ٢٠٢٦، ٩:٠٠ ص · المعادي',amt:'١٥٠ جنيه',evid:'الدليل: سجل الميعاد، التذكير وصل ١٧ سبتمبر ٦:٠٢ م، مفيش تسجيل عند البوابة',deadline:'تقدر تعترض لحد ٢٥ سبتمبر ٢٠٢٦',btn:'اعترض على الخصم',ph:'قول لنا اللي حصل',sample:'كنت في المخزن ٨:٥٠ والكاونتر كان مقفول. مرفق صورة من سجل البوابة.',attach:'صورة مرفقة · gate_log.jpg',send:'ابعت الاعتراض',sent:'الاعتراض اتبعت',sentSub:'المدير هيراجعه في خلال يومين عمل. مفيش خصم هيتم قبل قراره.',back:'رجوع',app:'Breadfast Rider'}};
+let disStep=0;
+function renderDispute(){
+  const t=DIS[LANG],s=$('#disputeScreen');s.setAttribute('dir',LANG==='ar'?'rtl':'ltr');
+  let body='';
+  if(disStep===0)body=`<div class="notice"><b>${t.title}</b><div class="amt">${t.amt}</div><div class="meta"><span>${t.sub}</span><span>${t.evid}</span><span style="color:var(--warn);font-weight:600">${t.deadline}</span></div></div>`;
+  if(disStep===1)body=`<div class="notice"><b>${t.title} · ${t.amt}</b><div class="meta"><span class="muted">${t.ph}</span></div><div style="margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:70px">${t.sample}</div><div class="pill ok" style="margin-top:8px">${t.attach}</div></div>`;
+  if(disStep===2)body=`<div class="passed"><div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div><h4>${t.sent}</h4><p class="muted small">${t.sentSub}</p></div>`;
+  const foot=disStep===0?`<button class="btn primary" id="disBtn">${t.btn}</button>`:disStep===1?`<button class="btn primary" id="disBtn">${t.send}</button>`:`<button class="btn" id="disBtn">${t.back}</button>`;
+  s.innerHTML=`<div class="s-bar"><span>09:41</span><span>${t.app}</span></div><div class="s-body">${body}</div><div class="s-foot">${foot}</div>`;
+  $('#disBtn').addEventListener('click',()=>{disStep=(disStep+1)%3;renderDispute()});
+}
+renderDispute();
+
+// ---------- stage 6 training phone
+const TR={en:{wa:'Breadfast Rider Academy',status:'Business account',time:'09:41',msg:'Hi Mahmoud 👋 A new course is waiting for you: <b>Riding safely in extreme heat</b>. It takes about 7 minutes and you can do it between orders.',link:'Open the course',
+  slides:[['Heat is a real danger','Above 38°C your body loses water faster than you notice. On a motorbike the wind hides the sweat.'],['Drink before you are thirsty','Every 20 to 30 minutes take a few sips, even when you do not feel like it. Thirst arrives late.'],['Take breaks in the shade','Wait for orders in the shade, never on the seat in the sun. Ten minutes matter.']],
+  next:'Next',toQuiz:'Take the quick check',quiz:'Quick check',q:'When should you drink water on a hot shift?',opts:['Only when I feel thirsty','Every 20–30 minutes, before I feel thirsty','Only back at the warehouse'],hint:'Tap the right answer',right:'Correct.',wrong:'Not quite. Thirst arrives late.',finish:'Finish',passed:'You passed',score:'Score 100% · 6 min 40 s',cert:'Certificate saved to your profile. Your supervisor can see it too.',done:'Back to orders'},
+ ar:{wa:'Breadfast Rider Academy',status:'حساب أعمال',time:'٩:٤١',msg:'أهلاً محمود 👋 في كورس جديد مستنيك: <b>القيادة الآمنة في الحر الشديد</b>. بياخد حوالي ٧ دقايق وتقدر تخلصه بين الأوردرات.',link:'افتح الكورس',
+  slides:[['الحر خطر حقيقي','فوق ٣٨ درجة جسمك بيفقد مياه أسرع مما تحس. على الموتوسيكل الهوا بيخبّي العرق.'],['اشرب قبل ما تعطش','كل ٢٠ لـ ٣٠ دقيقة خد كام رشفة حتى لو مش عايز. العطش بيجي متأخر.'],['خد راحة في الظل','استنى الأوردرات في الظل، مش على الكرسي في الشمس. عشر دقايق بتفرق.']],
+  next:'التالي',toQuiz:'ابدأ السؤال السريع',quiz:'سؤال سريع',q:'إمتى تشرب مياه في شيفت حر؟',opts:['بس لما أحس بالعطش','كل ٢٠–٣٠ دقيقة، قبل ما أعطش','بس لما أرجع المخزن'],hint:'اختار الإجابة الصح',right:'صح.',wrong:'مش بالظبط. العطش بيجي متأخر.',finish:'خلّص',passed:'نجحت',score:'النتيجة ١٠٠٪ · ٦ دقايق ٤٠ ثانية',cert:'الشهادة اتحفظت في ملفك. المشرف بتاعك يقدر يشوفها كمان.',done:'ارجع للأوردرات'}};
+let trStep=0,slide=0,answer=null;
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
+const WATER='<svg viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>';
+const TREE_I='<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 22v-6M7 16h10l-3-4h2l-4-5-4 5h2z"/><path d="M8 7l4-5 4 5"/></svg>';
+function renderTrain(){
+  const t=TR[LANG],s=$('#trainScreen');s.setAttribute('dir',LANG==='ar'?'rtl':'ltr');
+  $$('#trainSteps button').forEach(b=>b.classList.toggle('on',+b.dataset.ts===trStep));
+  let html='';
+  if(trStep===0){html=`<div class="s-bar"><span>${t.time}</span><span>WhatsApp</span></div><div class="wa-head"><span class="av">B</span><div><b>${t.wa}</b><span>${t.status}</span></div></div><div class="s-body" style="background:var(--surface-2)"><div class="bubble">${t.msg}<a class="link" href="#s6" id="waOpen">${t.link}</a></div><p class="tiny" style="text-align:center">${LANG==='ar'?'مفيش تطبيق للتحميل، بيفتح في المتصفح':'No app to install. Opens in the browser.'}</p></div>`;}
+  if(trStep===1){const sl=t.slides[slide];const ill=[SUN,WATER,TREE_I][slide];
+    html=`<div class="s-bar"><span>${t.time}</span><span>${LANG==='ar'?'الكورس':'Course'} ${slide+1}/3</span></div><div class="s-body"><div class="card"><div class="ill">${ill}</div><div class="cb"><h4>${sl[0]}</h4><p>${sl[1]}</p></div></div><div class="dots-ind">${[0,1,2].map(i=>`<i class="${i===slide?'on':''}"></i>`).join('')}</div></div><div class="s-foot"><button class="btn primary" id="trNext">${slide<2?t.next:t.toQuiz}</button></div>`;}
+  if(trStep===2){html=`<div class="s-bar"><span>${t.time}</span><span>${t.quiz}</span></div><div class="s-body"><div class="card"><div class="cb"><h4>${t.q}</h4><p>${answer==null?t.hint:(answer===1?t.right:t.wrong)}</p></div></div>${t.opts.map((o,i)=>`<button class="opt ${answer==null?'':(i===1?'right':(i===answer?'wrong':''))}" data-a="${i}">${o}</button>`).join('')}</div><div class="s-foot"><button class="btn primary" id="trFinish" ${answer===1?'':'disabled'}>${t.finish}</button></div>`;}
+  if(trStep===3){html=`<div class="s-bar"><span>${t.time}</span><span>Breadfast Rider Academy</span></div><div class="s-body"><div class="passed"><div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div><h4>${t.passed}</h4><p style="font-weight:600">${t.score}</p><p class="muted small" style="margin-top:8px">${t.cert}</p></div><div class="notice" style="font-size:12.5px"><b>${LANG==='ar'?'سجل الإتمام':'Completion record'}</b><div class="meta"><span>Mahmoud El-Sayed · R-0219 · Maadi</span><span>Riding safely in extreme heat · v2</span><span>21 Sept 2026 09:48 · 100% · 6:40</span></div></div></div><div class="s-foot"><button class="btn" id="trDone">${t.done}</button></div>`;}
+  s.innerHTML=html;
+  const wa=$('#waOpen');if(wa)wa.addEventListener('click',e=>{e.preventDefault();trStep=1;slide=0;renderTrain()});
+  const nx=$('#trNext');if(nx)nx.addEventListener('click',()=>{if(slide<2){slide++}else{trStep=2;answer=null}renderTrain()});
+  $$('.opt',s).forEach(o=>o.addEventListener('click',()=>{answer=+o.dataset.a;renderTrain()}));
+  const fin=$('#trFinish');if(fin)fin.addEventListener('click',()=>{trStep=3;renderTrain()});
+  const dn=$('#trDone');if(dn)dn.addEventListener('click',()=>{trStep=0;slide=0;answer=null;renderTrain()});
+}
+$$('#trainSteps button').forEach(b=>b.addEventListener('click',()=>{trStep=+b.dataset.ts;slide=0;answer=trStep===3?1:null;renderTrain()}));
+renderTrain();
+
+// ---------- stage 7 clearance
+const CLR=[{it:'bag',issued:'Issued 3 Feb 2026',ret:true,cond:'good'},{it:'jacket',issued:'Issued 3 Feb 2026',ret:true,cond:'worn'},{it:'tshirt',issued:'Issued 3 Feb 2026',ret:true,cond:'good'},{it:'tshirt',issued:'Issued 22 Jul 2026 (lifecycle exchange)',ret:true,cond:'good'},{it:'helmet',issued:'Issued 3 Feb 2026',ret:true,cond:'good'},{it:'badge',issued:'Issued 3 Feb 2026',ret:true,cond:'good'}];
+const COND=[['good','Good'],['worn','Worn'],['damaged','Damaged']];
+function fee(c){const it=ITEMS.find(x=>x.id===c.it);if(!c.ret)return it.price;if(c.cond==='damaged')return Math.round(it.price*0.4);return 0}
+function outcome(c){if(!c.ret)return 'Missing';return {good:'Back to stock',worn:'Reusable pool',damaged:'Dispose'}[c.cond]}
+function renderClear(){
+  const list=$('#clearList');list.innerHTML='';
+  CLR.forEach((c,i)=>{const it=ITEMS.find(x=>x.id===c.it);const f=fee(c);const row=document.createElement('div');row.className='cl';
+    row.innerHTML=`<input type="checkbox" ${c.ret?'checked':''} aria-label="Returned"><div class="nm"><b>${it.name}</b><span>${c.issued} · replacement value ${egp(it.price)}</span></div><select ${c.ret?'':'disabled'} aria-label="Condition">${COND.map(o=>`<option value="${o[0]}" ${c.cond===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><span class="fee ${f?'':'zero'}">${f?egp(f):outcome(c)}</span>`;
+    row.querySelector('input').addEventListener('change',e=>{c.ret=e.target.checked;renderClear()});row.querySelector('select').addEventListener('change',e=>{c.cond=e.target.value;renderClear()});list.appendChild(row)});
+  const bal=CLR.reduce((s,c)=>s+fee(c),0);const missing=CLR.filter(c=>!c.ret).length,dmg=CLR.filter(c=>c.ret&&c.cond==='damaged').length;
+  $('#balBig').textContent=egp(bal);$('#balBig').classList.toggle('zero',bal===0);
+  $('#balSub').textContent=bal===0?'All items returned in acceptable condition.':`${missing?missing+' item'+(missing>1?'s':'')+' not returned at replacement value':''}${missing&&dmg?'; ':''}${dmg?dmg+' damaged at 40% negligence fee':''}. Opens a final deduction with a 7-day dispute window before the last salary run.`;
+  $('#cert').classList.remove('show');
+}
+$('#certBtn').addEventListener('click',()=>{
+  const bal=CLR.reduce((s,c)=>s+fee(c),0);
+  $('#cert').innerHTML=`<span class="stamp">${bal===0?'CLEARED':'BALANCE DUE'}</span><h4>Clearance certificate · CC-2026-0512</h4><p class="small muted">Hany Fathy · R-0512 · Sheikh Zayed · last working day 19 Sept 2026 · cleared by Mina G. on 21 Sept 2026</p><table style="margin-top:10px">${CLR.map(c=>{const it=ITEMS.find(x=>x.id===c.it);return `<tr><td>${it.name}</td><td>${outcome(c)}</td><td class="num" style="text-align:right">${fee(c)?egp(fee(c)):'—'}</td></tr>`}).join('')}<tr><td colspan="2"><b>Outstanding balance</b></td><td class="num" style="text-align:right"><b>${egp(bal)}</b></td></tr></table><p class="tiny" style="margin-top:10px">Sent to HR and payroll. ${bal?'Deduction D-4512 opened with a dispute window to 28 Sept 2026.':'No deduction raised.'} Returned items have been moved to their outcomes in stock.</p>`;
+  $('#cert').classList.add('show');
+});
+renderClear();
+
+// ---------- stage 8 control tower
+const fWh=$('#fWh');fWh.appendChild(new Option('All warehouses','all'));WH.forEach(w=>fWh.appendChild(new Option(w.name,w.id)));
+const fVeh=$('#fVeh');VEH.forEach(v=>fVeh.appendChild(new Option(v,v)));
+$('#fRange').addEventListener('change',e=>{F.range=+e.target.value;renderTower()});
+fWh.addEventListener('change',e=>{F.wh=e.target.value;renderTower()});
+fVeh.addEventListener('change',e=>{F.veh=e.target.value;renderTower()});
+$('#fShift').addEventListener('change',e=>{F.shift=e.target.value;renderTower()});
+let sortK='comp',sortDir='desc',firstTower=true;
+function niceCeil(v){if(v<=5)return 5;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;const c=n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10;return c*p}
+function drawBars(svg,series,labels){
+  const W=Math.max(300,svg.clientWidth||600),H=170,pl=32,pr=6,pt=8,pb=22;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const n=labels.length;const totals=labels.map((_,i)=>series.reduce((s,se)=>s+se.values[i],0));const mx=niceCeil(Math.max(1,...totals));
+  let out='';for(let g=0;g<=4;g++){const y=pt+(H-pt-pb)*(1-g/4);out+=`<line class="grid" x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}"/><text class="axis" x="${pl-5}" y="${y+3}" text-anchor="end">${Math.round(mx*g/4)}</text>`}
+  const bw=(W-pl-pr)/n,gap=Math.min(3,bw*0.3);out+='<g class="bars">';
+  for(let i=0;i<n;i++){let y0=H-pb;for(const se of series){const h=(H-pt-pb)*se.values[i]/mx;y0-=h;if(h>0)out+=`<rect class="${se.cls||''}" x="${(pl+i*bw+gap/2).toFixed(1)}" y="${y0.toFixed(1)}" width="${Math.max(1,bw-gap).toFixed(1)}" height="${h.toFixed(1)}" rx="1"/>`}}
+  out+='</g>';const idx=[0,Math.floor(n/2),n-1];idx.forEach((i,j)=>{out+=`<text class="axis" x="${pl+i*bw+bw/2}" y="${H-6}" text-anchor="${j===0?'start':j===2?'end':'middle'}">${labels[i]}</text>`});
+  svg.innerHTML=out;
+}
+function countUp(el,to,format){const start=performance.now(),dur=700;const step=t=>{const p=Math.min(1,(t-start)/dur);const e=1-Math.pow(1-p,3);el.textContent=format(to*e);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function renderTower(){
+  const set=filtered(),D=F.range,k=kpis(set,D);
+  const tiles=[
+    ['Active riders',k.active,v=>fmt(v),k.onb+' in onboarding',''],
+    ['Gear issued',k.issued,v=>fmt(v),'items, last '+D+' days',''],
+    ['Pending exchanges',k.pendEx,v=>fmt(v),'awaiting counter or approval',k.pendEx>25?'warn':''],
+    ['Compliance rate',k.comp,v=>Math.round(v)+'%','score 75 or above',k.comp>=85?'ok':k.comp>=75?'warn':'bad'],
+    ['Open deductions',k.openEgp,v=>egp(v),k.openD+' awaiting a decision','warn'],
+    ['Overdue returns',k.overdue,v=>fmt(v),'past exit date',k.overdue?'bad':'ok'],
+    ['Training completion',k.train,v=>Math.round(v)+'%','assigned courses passed',k.train>=75?'ok':'warn'],
+    ['No-show rate',k.ns,v=>Math.round(v)+'%',k.nsCount+' of '+k.ap+' appointments',k.ns>12?'bad':'ok'],
+  ];
+  const kp=$('#kpis');kp.innerHTML=tiles.map(t=>`<div class="kpi"><div class="l">${t[0]}</div><div class="v ${t[4]}"></div><div class="s">${t[3]}</div></div>`).join('');
+  $$('#kpis .v').forEach((v,i)=>{if(firstTower)countUp(v,tiles[i][1],tiles[i][2]);else v.textContent=tiles[i][2](tiles[i][1])});
+  firstTower=false;$('#recCount').textContent=fmt(set.length);
+  const iss=new Array(D).fill(0),kept=new Array(D).fill(0),miss=new Array(D).fill(0);
+  set.forEach(r=>{r.issues.forEach(i=>{if(i.d<D)iss[D-1-i.d]+=i.items});r.appts.forEach(a=>{if(a.d<D){if(a.kept)kept[D-1-a.d]++;else miss[D-1-a.d]++}})});
+  const labels=Array.from({length:D},(_,i)=>dayLabel(D-1-i));
+  drawBars($('#chart1'),[{values:iss}],labels);drawBars($('#chart2'),[{values:kept},{values:miss,cls:'bad'}],labels);
+  $('#chart1Sub').textContent=fmt(k.issued)+' items';$('#chart2Sub').textContent=k.nsCount+' missed of '+k.ap;
+  const rows=WH.filter(w=>F.wh==='all'||w.id===F.wh).map(w=>{const s=set.filter(r=>r.wh===w.id);const kk=kpis(s,D);return {name:w.name,riders:kk.active+kk.onb,comp:kk.comp,train:kk.train,noshow:kk.ns,open:kk.openEgp,overdue:kk.overdue}});
+  rows.sort((a,b)=>{const va=a[sortK],vb=b[sortK];const c=typeof va==='string'?va.localeCompare(vb):va-vb;return sortDir==='asc'?c:-c});
+  $('#league tbody').innerHTML=rows.map((r,i)=>`<tr><td><span class="rank ${i===0&&sortK==='comp'?'top':''}">${i+1}</span></td><td><b>${r.name}</b></td><td class="r num">${fmt(r.riders)}</td><td class="r"><div class="row" style="justify-content:flex-end;gap:8px"><span class="num">${r.comp}%</span><div class="bar ${r.comp<80?'bad':r.comp<88?'warn':''}"><i style="width:${r.comp}%"></i></div></div></td><td class="r num">${r.train}%</td><td class="r num" style="color:${r.noshow>14?'var(--bad)':'inherit'}">${r.noshow}%</td><td class="r num">${egp(r.open)}</td><td class="r num">${r.overdue}</td></tr>`).join('');
+  $$('#league th.sort').forEach(th=>{th.classList.remove('asc','desc');if(th.dataset.k===sortK)th.classList.add(sortDir)});
+  // exceptions
+  const ex=[];
+  WH.filter(w=>F.wh==='all'||w.id===F.wh).forEach(w=>INV[w.id].forEach(it=>{if(it.stock<=it.reorder)ex.push(['bad',`${it.name} below reorder point · ${w.name}`,`${it.stock} on hand · replenishment request drafted`,'Approve'])}));
+  const pend=[];set.forEach(r=>r.deductions.forEach(d=>{if(d.d<D&&(d.status==='pending'||d.status==='disputed'))pend.push({r,d})}));pend.sort((a,b)=>b.d.d-a.d.d);
+  pend.slice(0,2).forEach(p=>ex.push(['',`Deduction ${p.d.id} waiting ${p.d.d} days · ${WH.find(w=>w.id===p.r.wh).name}`,`${DED[p.d.type].label} · ${egp(p.d.amt)} · ${p.d.status==='disputed'?'rider disputed with evidence':'no dispute raised'}`,'Decide']));
+  const over=set.filter(r=>r.status!=='offboarded'&&r.trainA-r.trainD>=2);if(over.length)ex.push(['info',`${over.length} riders with 2 or more courses overdue`,`Reminders sent · supervisors notified at day 5`,'View']);
+  const nsToday=set.reduce((s,r)=>s+r.appts.filter(a=>a.d===0&&!a.kept).length,0);if(nsToday)ex.push(['',`${nsToday} no-shows today`,`Re-booking links sent · no-show rule evaluated tonight`,'View']);
+  const ret=set.filter(r=>r.overdue).length;if(ret)ex.push(['bad',`${ret} exited riders past return date`,`Final deduction opens after 7 more days without return`,'View']);
+  $('#exceptions').innerHTML=ex.slice(0,6).map(e=>`<div class="exception"><span class="dot ${e[0]}"></span><div class="d">${e[1]}<span>${e[2]}</span></div><button class="btn sm">${e[3]}</button></div>`).join('')||'<p class="muted small">Nothing needs attention for this selection.</p>';
+  $$('#exceptions .exception .btn').forEach(b=>b.addEventListener('click',()=>{const row=b.closest('.exception');row.classList.add('gone');setTimeout(()=>row.remove(),380)}));
+}
+$$('#league th.sort').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(sortK===k)sortDir=sortDir==='asc'?'desc':'asc';else{sortK=k;sortDir=k==='name'?'asc':'desc'}renderTower()}));
+$('#exportBtn').addEventListener('click',()=>{
+  const set=filtered();const head='rider_id,name,warehouse,vehicle,shift,status,items_on_hand,compliance_score,courses_passed,courses_assigned,open_deductions_egp,overdue_return';
+  const lines=set.slice(0,9).map(r=>[r.id,r.fn+' '+r.ln,WH.find(w=>w.id===r.wh).name,r.veh,r.shift.toUpperCase(),r.status,r.veh==='Walker'?5:6,r.score,r.trainD,r.trainA,r.deductions.filter(d=>d.status==='pending'||d.status==='disputed').reduce((s,d)=>s+d.amt,0),r.overdue?'yes':'no'].join(','));
+  $('#exportPre').textContent=head+'\n'+lines.join('\n')+'\n… '+fmt(Math.max(0,set.length-9))+' more rows';$('#exportRows').textContent=fmt(set.length);$('#exportBox').style.display='block';$('#exportHint').style.display='none';
+});
+$('#schedBtn').addEventListener('click',()=>{$('#exportBtn').click();$('#schedBox').style.display='grid'});
+renderTower();
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(renderTower,150)});
+
+// ---------- stage 9 requests
+const REQ={stock:[['Warehouse','Nasr City'],['Item','Insulated delivery bag · BF-BAG-40L'],['Quantity','30'],['Reason','4 on hand, 9 onboardings booked this week'],['Needed by','Thu 24 Sept']],
+ exception:[['Rider','Youssef Abdallah · R-0871'],['Item','Insulated delivery bag'],['Issued','14 Jun 2026 · 3 months ago'],['Justification','Zip failed; item photos attached'],['Proposed charge','None']],
+ waiver:[['Deduction','D-4471 · no-show · EGP 150'],['Rider','Ahmed Mohamed · R-1042'],['Rider statement','Counter closed at 08:50, gate log attached'],['Supervisor note','Confirmed: counter opened late'],['Proposed outcome','Waive in full']],
+ bug:[['Area','Appointments'],['What happened','Rider flagged no-show but kit was issued 09:12'],['Rider and date','R-0655 · 17 Sept'],['Impact','Deduction raised in error'],['Attachments','screenshot.png']]};
+const CHAIN={stock:['Warehouse manager','Regional manager'],exception:['Warehouse manager'],waiver:['Warehouse manager','HR business partner'],bug:['Boolanga support']};
+let reqT='stock',chainMode='seq';
+function renderReq(){
+  $$('#reqTypes button').forEach(b=>b.classList.toggle('on',b.dataset.r===reqT));
+  $('#reqForm').innerHTML=REQ[reqT].map(f=>`<div class="fld">${f[0]}<div>${f[1]}</div></div>`).join('');
+  const ch=CHAIN[reqT];const a=$('#approvals');a.className='approvals'+(chainMode==='par'&&ch.length>1?' parallel':'');
+  const box=(name,st,cls)=>`<div class="ap ${cls}"><b>${name}</b><span class="pill ${st==='Approved'?'ok':st==='Waiting'?'neutral':'warn'} st">${st}</span></div>`;
+  const submitter=box('Sara M. · submits','Submitted','done');
+  if(chainMode==='par'&&ch.length>1){a.innerHTML=submitter+`<span class="arrow">›</span><div class="par">${ch.map((c,i)=>box(c,i===0?'Approved':'Pending','')).join('')}</div><span class="arrow">›</span>`+box('Fulfilment','Waiting','wait');}
+  else{a.innerHTML=submitter+ch.map((c,i)=>`<span class="arrow">›</span>`+box(c,i===0?'Approved':'Pending',i===0?'done':'')).join('')+`<span class="arrow">›</span>`+box('Fulfilment','Waiting','wait');}
+}
+$$('#reqTypes button').forEach(b=>b.addEventListener('click',()=>{reqT=b.dataset.r;renderReq()}));
+$$('[data-chain]').forEach(b=>b.addEventListener('click',()=>{chainMode=b.dataset.chain;$$('[data-chain]').forEach(x=>x.classList.toggle('on',x===b));renderReq()}));
+renderReq();
+
+// ---------- ROI
+const ro={N:$('#iN'),C:$('#iC'),K:$('#iK'),G:$('#iG'),S:$('#iS'),H:$('#iH'),R:$('#iR')};
+function renderRoi(){
+  const N=+ro.N.value,C=+ro.C.value,K=+ro.K.value,G=+ro.G.value,S=+ro.S.value,H=+ro.H.value,Rt=+ro.R.value;
+  $('#vN').textContent=fmt(N);$('#vC').textContent=C+'%';$('#vK').textContent=egp(K);$('#vG').textContent=G+'%';$('#vS').textContent=S+'%';$('#vH').textContent=fmt(H);$('#vR').textContent=egp(Rt);
+  const gear=N*(G/100)*K*0.6;
+  const hours=H*52*0.7,admin=hours*Rt;
+  const appts=N*((C/100)*12*2+1.2),noshows=appts*(S/100),costPer=Rt*0.75+80,ns=noshows*0.5*costPer;
+  const total=gear+admin+ns;
+  $('#roiTotal').textContent=egp(total);$('#roiGear').textContent=egp(gear);$('#roiAdmin').textContent=egp(admin);$('#roiNoshow').textContent=egp(ns);$('#roiHours').textContent=fmt(hours)+' h';
+  $('#assump').textContent=`Assumptions: 60% of currently lost or unreturned gear is recovered through signed receipts, exit-triggered return appointments and clearance balances. 70% of manual tracking hours are removed. Each rider generates about ${((C/100)*12*2+1.2).toFixed(1)} appointments a year (onboarding, exit and exchanges); reminders and the POC digest halve no-shows; a no-show costs 45 minutes of counter time plus EGP 80 of idle-kit and rebooking cost. No value is claimed for compliance, training or dispute reduction.`;
+}
+Object.values(ro).forEach(i=>i.addEventListener('input',renderRoi));renderRoi();
+
+// ---------- rail highlighting
+const links=$$('.rail a');const secs=links.map(a=>$(a.getAttribute('href'))).filter(Boolean);
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))}})},{rootMargin:'-40% 0px -55% 0px',threshold:0});
+secs.forEach(s=>io.observe(s));
+})();
+</script>
+</body>
+</html>
